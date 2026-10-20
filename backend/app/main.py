@@ -1,9 +1,10 @@
 from fastapi import FastAPI
 
-#init fastAPi as app
+# init FastAPi as app
 app = FastAPI()
 
-#register a route
+
+# register a route
 @app.get("/")
 async def root():
     return {"message": "Hello World, this is my first fastAPI program"}
