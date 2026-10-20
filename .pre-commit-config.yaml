@@ -1,0 +1,23 @@
+repos:
+  - repo: local
+    hooks:
+      - id: ruff
+        name: Ruff lint
+        entry: uv --directory backend run ruff check .
+        language: system
+        pass_filenames: false
+        always_run: true
+
+      - id: black
+        name: Black formatting
+        entry: uv --directory backend run black --check .
+        language: system
+        pass_filenames: false
+        always_run: true
+
+      - id: mypy
+        name: mypy type checking
+        entry: uv --directory backend run mypy app
+        language: system
+        pass_filenames: false
+        always_run: true
