@@ -1,0 +1,43 @@
+name: Backend CI
+on:
+  pull_request:
+    branches: [master]
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.14'
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v6
+        with:
+          version: "0.12.21"
+
+      - name: Install backend dependencies
+        working-directory: backend
+        run: uv sync --locked
+
+      - name: Ruff linting
+        working-directory: backend
+        run: uv run ruff check .
+
+      - name: Black formatting check
+        working-directory: backend
+        run: uv run black --check .
+
+      - name: Mypy type checking
+        working-directory: backend
+        run: uv run mypy app tests
+
+      - name: Pytest automated tests
+        working-directory: backend
+        run: uv run pytest -v
+
+
