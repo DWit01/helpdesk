@@ -24,3 +24,8 @@ app.middleware("http")(request_id_middleware)
 async def root() -> dict[str, str]:
     logger.info("root_endpoint_called")
     return {"message": "Hello World, this is my first fastAPI program"}
+
+
+@app.get("/health")
+async def health() -> dict[str, str]:
+    return {"status": "ok"}
