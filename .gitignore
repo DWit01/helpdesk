@@ -7,3 +7,5 @@ backend/.env
 /backend/**/*.db-journal
 /backend/**/*.db-wal
 /backend/**/*.db-shm
+# Local VS Code workspace customisations
+.vscode/
