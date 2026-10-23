@@ -2,3 +2,8 @@
 __pycache__/
 .pytest_cache/
 backend/.env
+# Generated backend SQLite databases and companion files
+/backend/**/*.db
+/backend/**/*.db-journal
+/backend/**/*.db-wal
+/backend/**/*.db-shm
