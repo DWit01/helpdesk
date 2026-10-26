@@ -1,5 +1,5 @@
 from collections.abc import Generator
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from sqlite3 import Connection
 from typing import Any
 from uuid import UUID, uuid4
@@ -578,6 +578,12 @@ def test_ticket_timestamps_created(db_session: Session) -> None:
     db_session.commit()
     db_session.refresh(ticket)
 
+    assert ticket.created_at.tzinfo is not None
+    assert ticket.created_at.utcoffset() == timedelta(0)
+
+    assert ticket.updated_at.tzinfo is not None
+    assert ticket.updated_at.utcoffset() == timedelta(0)
+
     assert isinstance(ticket.created_at, datetime)
     assert isinstance(ticket.updated_at, datetime)
 
@@ -594,8 +600,6 @@ def test_ticket_updated_at_changes(db_session: Session) -> None:
 
     db_session.commit()
 
-    original_updated_at = ticket.updated_at
-
     # Supply a known earlier timestamp for deterministic testing
     earlier_time = datetime(2020, 1, 1, tzinfo=UTC)
     ticket.updated_at = earlier_time
@@ -605,8 +609,7 @@ def test_ticket_updated_at_changes(db_session: Session) -> None:
     db_session.commit()
     db_session.refresh(ticket)
 
-    assert ticket.updated_at != original_updated_at
-    assert ticket.updated_at > earlier_time.replace(tzinfo=None)
+    assert ticket.updated_at > earlier_time
 
 
 def test_ticket_soft_delete_timestamp(db_session: Session) -> None:

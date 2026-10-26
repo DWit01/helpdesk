@@ -1,10 +1,11 @@
 from datetime import UTC, datetime
 from typing import TYPE_CHECKING
 
-from sqlalchemy import CheckConstraint, DateTime, String
+from sqlalchemy import CheckConstraint, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
+from app.db.types import UTCDateTime
 
 if TYPE_CHECKING:
     from app.models.ticket import Ticket
@@ -25,12 +26,12 @@ class Category(Base):
     is_active: Mapped[bool] = mapped_column(default=True)
 
     created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True),
+        UTCDateTime(),
         default=lambda: datetime.now(UTC),
     )
 
     updated_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True),
+        UTCDateTime(),
         default=lambda: datetime.now(UTC),
         onupdate=lambda: datetime.now(UTC),
     )
@@ -41,10 +42,14 @@ class Category(Base):
         back_populates="category",
     )
 
-    # Enforce the approved category name length
+    # Enforce the approved category name and description length
     __table_args__ = (
         CheckConstraint(
             "length(name) BETWEEN 2 AND 60",
             name="ck_categories_name_length",
+        ),
+        CheckConstraint(
+            "description IS NULL OR length(description) <= 255",
+            name="ck_categories_description_length",
         ),
     )

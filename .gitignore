@@ -9,3 +9,33 @@ backend/.env
 /backend/**/*.db-shm
 # Local VS Code workspace customisations
 .vscode/
+
+# Local AI instructions, skills, memory and session artifacts (never stage these)
+AGENTS.md
+AGENTS.override.md
+CURRENT_PROGRESS.md
+.agents/
+.agent/
+.codex/
+.ai/
+.ai-*/
+AI_*.md
+HANDOVER*.md
+CLAUDE.md
+.claude/
+GEMINI.md
+.gemini/
+.copilot/
+.cursor/
+.cursorrules
+.windsurfrules
+.windsurf/
+.aider*
+.continue/
+.roo/
+.roorules*
+.clinerules/
+.github/copilot-instructions.md
+.github/instructions/
+.github/prompts/
+.github/agents/
