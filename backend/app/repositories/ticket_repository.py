@@ -1,9 +1,11 @@
+from datetime import UTC, datetime
 from uuid import UUID
 
-from sqlalchemy import select
+from sqlalchemy import case, func, select
 from sqlalchemy.orm import Session
+from sqlalchemy.sql.elements import ColumnElement
 
-from app.models.ticket import Ticket, TicketPriority
+from app.models.ticket import Ticket, TicketPriority, TicketStatus
 
 
 class TicketRepository:
@@ -66,3 +68,121 @@ class TicketRepository:
         self._session.flush()
 
         return ticket
+
+    def search(
+        self,
+        *,
+        status: TicketStatus | None = None,
+        priority: TicketPriority | None = None,
+        category_id: int | None = None,
+        assignee_id: UUID | None = None,
+        requester_id: UUID | None = None,
+        unassigned_only: bool = False,
+        created_from: datetime | None = None,
+        created_to: datetime | None = None,
+        sort: str = "-created_at",
+        page: int = 1,
+        page_size: int = 20,
+    ) -> tuple[list[Ticket], int]:
+        # Reject invalid pagination before issuing queries.
+        if page < 1:
+            raise ValueError("page must be at least 1")
+
+        if not 1 <= page_size <= 100:
+            raise ValueError("page_size must be between 1 and 100")
+
+        # A specific assignee and an unassigned-only search conflict.
+        if assignee_id is not None and unassigned_only:
+            raise ValueError("assignee_id cannot be combined with unassigned_only")
+
+        # Require aware timestamps and normalise them to UTC.
+        if created_from is not None:
+            if created_from.tzinfo is None or created_from.utcoffset() is None:
+                raise ValueError("created_from must be timezone-aware")
+            created_from = created_from.astimezone(UTC)
+
+        if created_to is not None:
+            if created_to.tzinfo is None or created_to.utcoffset() is None:
+                raise ValueError("created_to must be timezone-aware")
+            created_to = created_to.astimezone(UTC)
+
+        if created_from is not None and created_to is not None and created_from >= created_to:
+            raise ValueError("created_from must be earlier than created_to")
+
+        # Rank enum values explicitly instead of sorting their text.
+        priority_rank = case(
+            (Ticket.priority == TicketPriority.LOW, 1),
+            (Ticket.priority == TicketPriority.MEDIUM, 2),
+            (Ticket.priority == TicketPriority.HIGH, 3),
+            (Ticket.priority == TicketPriority.CRITICAL, 4),
+            else_=0,
+        )
+
+        status_rank = case(
+            (Ticket.status == TicketStatus.OPEN, 1),
+            (Ticket.status == TicketStatus.IN_PROGRESS, 2),
+            (Ticket.status == TicketStatus.RESOLVED, 3),
+            (Ticket.status == TicketStatus.CLOSED, 4),
+            else_=0,
+        )
+
+        # Only these six sort choices are accepted.
+        sort_expressions = {
+            "created_at": Ticket.created_at.asc(),
+            "-created_at": Ticket.created_at.desc(),
+            "priority": priority_rank.asc(),
+            "-priority": priority_rank.desc(),
+            "status": status_rank.asc(),
+            "-status": status_rank.desc(),
+        }
+
+        if sort not in sort_expressions:
+            raise ValueError("sort must be created_at, priority or status, optionally prefixed with '-'")
+
+        # Reuse these exact conditions for both the count and page queries.
+        conditions: list[ColumnElement[bool]] = [Ticket.deleted_at.is_(None)]
+
+        if status is not None:
+            conditions.append(Ticket.status == status)
+
+        if priority is not None:
+            conditions.append(Ticket.priority == priority)
+
+        if category_id is not None:
+            conditions.append(Ticket.category_id == category_id)
+
+        if assignee_id is not None:
+            conditions.append(Ticket.assignee_id == assignee_id)
+
+        if requester_id is not None:
+            conditions.append(Ticket.requester_id == requester_id)
+
+        if unassigned_only:
+            conditions.append(Ticket.assignee_id.is_(None))
+
+        if created_from is not None:
+            conditions.append(Ticket.created_at >= created_from)
+
+        if created_to is not None:
+            conditions.append(Ticket.created_at < created_to)
+
+        # Count every match without applying pagination.
+        count_statement = select(func.count()).select_from(Ticket).where(*conditions)
+        total = self._session.execute(count_statement).scalar_one()
+
+        # Skip the records belonging to earlier pages.
+        offset = (page - 1) * page_size
+
+        # ID provides a deterministic order when the primary values tie.
+        statement = (
+            select(Ticket)
+            .where(*conditions)
+            .order_by(sort_expressions[sort], Ticket.id.asc())
+            .offset(offset)
+            .limit(page_size)
+        )
+
+        tickets = list(self._session.scalars(statement).all())
+
+        # The caller retains transaction and Session ownership.
+        return tickets, total
