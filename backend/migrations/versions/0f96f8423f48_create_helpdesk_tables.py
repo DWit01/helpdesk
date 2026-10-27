@@ -33,9 +33,7 @@ def upgrade() -> None:
             "description IS NULL OR length(description) <= 255",
             name="ck_categories_description_length",
         ),
-        sa.CheckConstraint(
-            "length(name) BETWEEN 2 AND 60", name="ck_categories_name_length"
-        ),
+        sa.CheckConstraint("length(name) BETWEEN 2 AND 60", name="ck_categories_name_length"),
         sa.PrimaryKeyConstraint("id"),
         sa.UniqueConstraint("name"),
     )
@@ -51,9 +49,7 @@ def upgrade() -> None:
         sa.Column("updated_at", sa.DateTime(timezone=True), nullable=False),
         sa.Column(
             "role",
-            sa.Enum(
-                "requester", "agent", "admin", name="user_role", create_constraint=True
-            ),
+            sa.Enum("requester", "agent", "admin", name="user_role", create_constraint=True),
             nullable=False,
         ),
         sa.PrimaryKeyConstraint("id"),
@@ -101,9 +97,7 @@ def upgrade() -> None:
             "length(description) BETWEEN 10 AND 5000",
             name="ck_tickets_description_length",
         ),
-        sa.CheckConstraint(
-            "length(title) BETWEEN 5 AND 120", name="ck_tickets_title_length"
-        ),
+        sa.CheckConstraint("length(title) BETWEEN 5 AND 120", name="ck_tickets_title_length"),
         sa.ForeignKeyConstraint(
             ["assignee_id"],
             ["users.id"],
@@ -121,9 +115,7 @@ def upgrade() -> None:
     )
     op.create_index("ix_tickets_assignee_id", "tickets", ["assignee_id"], unique=False)
     op.create_index("ix_tickets_created_at", "tickets", ["created_at"], unique=False)
-    op.create_index(
-        "ix_tickets_requester_id", "tickets", ["requester_id"], unique=False
-    )
+    op.create_index("ix_tickets_requester_id", "tickets", ["requester_id"], unique=False)
     op.create_index("ix_tickets_status", "tickets", ["status"], unique=False)
     op.create_table(
         "comments",
@@ -134,9 +126,7 @@ def upgrade() -> None:
         sa.Column("is_internal", sa.Boolean(), nullable=False),
         sa.Column("created_at", sa.DateTime(timezone=True), nullable=False),
         sa.Column("updated_at", sa.DateTime(timezone=True), nullable=False),
-        sa.CheckConstraint(
-            "length(body) BETWEEN 1 AND 2000", name="ck_comments_body_length"
-        ),
+        sa.CheckConstraint("length(body) BETWEEN 1 AND 2000", name="ck_comments_body_length"),
         sa.ForeignKeyConstraint(["author_id"], ["users.id"]),
         sa.ForeignKeyConstraint(
             ["ticket_id"],

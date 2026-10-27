@@ -22,7 +22,4 @@ def test_settings_requires_database_url(monkeypatch: pytest.MonkeyPatch) -> None
         Settings()
 
     # Check the specific missing field, not just any validation failure.
-    assert any(
-        item["loc"] == ("database_url",) and item["type"] == "missing"
-        for item in error.value.errors()
-    )
+    assert any(item["loc"] == ("database_url",) and item["type"] == "missing" for item in error.value.errors())

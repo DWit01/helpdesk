@@ -5,9 +5,7 @@ from uuid import uuid4
 from fastapi import Request, Response
 
 
-async def request_id_middleware(
-    request: Request, call_next: Callable[[Request], Awaitable[Response]]
-) -> Response:
+async def request_id_middleware(request: Request, call_next: Callable[[Request], Awaitable[Response]]) -> Response:
     request_id = request.headers.get("X-Request-ID")
 
     if request_id is None:

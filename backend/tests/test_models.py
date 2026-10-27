@@ -1,15 +1,11 @@
-from collections.abc import Generator
 from datetime import UTC, datetime, timedelta
-from sqlite3 import Connection
-from typing import Any
 from uuid import UUID, uuid4
 
 import pytest
-from sqlalchemy import create_engine, event, inspect
+from sqlalchemy import inspect
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
-from app.db.base import Base
 from app.models import (
     Category,
     Comment,
@@ -19,31 +15,6 @@ from app.models import (
     User,
     UserRole,
 )
-
-
-@pytest.fixture
-def db_session() -> Generator[Session, None, None]:
-    # Create an isolated SQLite database for each test
-    engine = create_engine("sqlite+pysqlite:///:memory:")
-
-    # Enable SQLite foreign-key enforcement
-    @event.listens_for(engine, "connect")
-    def enable_foreign_keys(
-        dbapi_connection: Connection,
-        connection_record: Any,
-    ) -> None:
-        cursor = dbapi_connection.cursor()
-        cursor.execute("PRAGMA foreign_keys=ON")
-        cursor.close()
-
-    try:
-        Base.metadata.create_all(engine)
-
-        with Session(engine) as session:
-            yield session
-
-    finally:
-        engine.dispose()
 
 
 # Reusable test data helpers
