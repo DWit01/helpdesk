@@ -69,6 +69,17 @@ class TicketRepository:
 
         return ticket
 
+    def soft_delete(self, ticket: Ticket) -> Ticket:
+        """Mark a tracked ticket deleted while retaining its row and comments."""
+        # As with other writes, the caller supplies a ticket tracked by this Session.
+        # Services must check permissions and lifecycle rules before calling this method.
+        if ticket.deleted_at is None:
+            ticket.deleted_at = datetime.now(UTC)
+
+        # Preserve the first deletion timestamp on repeat calls. The caller owns commit/rollback.
+        self._session.flush()
+        return ticket
+
     def search(
         self,
         *,
