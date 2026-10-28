@@ -12,6 +12,7 @@ dependencies = [
 [dependency-groups]
 dev = [
     "black>=26.10.1",
+    "coverage>=7.17.0",
     "httpx>=0.28.1",
     "mypy>=2.4.0",
     "pre-commit>=4.7.0",
@@ -32,3 +33,12 @@ plugins = ["pydantic.mypy"]
 
 [tool.black]
 line-length = 120
+
+[tool.coverage.run]
+source = ["app"]
+branch = false
+
+[tool.coverage.report]
+fail_under = 70
+show_missing = true
+precision = 2

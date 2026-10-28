@@ -2,6 +2,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.models.category import Category
+from app.models.ticket import Ticket
 
 
 class CategoryRepository:
@@ -33,3 +34,16 @@ class CategoryRepository:
     def list_active(self) -> list[Category]:
         statement = select(Category).where(Category.is_active.is_(True)).order_by(Category.id)
         return list(self._session.scalars(statement))
+
+    def get_by_name(self, name: str) -> Category | None:
+        statement = select(Category).where(Category.name == name)
+        return self._session.scalars(statement).one_or_none()
+
+    def is_used(self, category_id: int) -> bool:
+        # Deleted tickets still retain their category foreign key.
+        statement = select(Ticket.id).where(Ticket.category_id == category_id).limit(1)
+        return self._session.scalar(statement) is not None
+
+    def delete(self, category: Category) -> None:
+        self._session.delete(category)
+        self._session.flush()
