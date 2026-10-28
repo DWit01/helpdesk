@@ -7,6 +7,9 @@ backend/.env
 /backend/**/*.db-journal
 /backend/**/*.db-wal
 /backend/**/*.db-shm
+# Generated backend coverage data
+/backend/.coverage
+/backend/.coverage.*
 # Local VS Code workspace customisations
 .vscode/
 

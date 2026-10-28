@@ -3,7 +3,7 @@ from uuid import UUID
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app.models.user import User
+from app.models.user import User, UserRole
 
 
 class UserRepository:
@@ -29,4 +29,20 @@ class UserRepository:
         # Send the pending insert to the database without committing.
         self._session.flush()
 
+        return user
+
+    def list_users(self, *, role: UserRole | None = None, active_only: bool = True) -> list[User]:
+        statement = select(User)
+
+        if role is not None:
+            statement = statement.where(User.role == role)
+
+        if active_only:
+            statement = statement.where(User.is_active.is_(True))
+
+        statement = statement.order_by(User.username, User.id)
+        return list(self._session.scalars(statement))
+
+    def save(self, user: User) -> User:
+        self._session.flush()
         return user
