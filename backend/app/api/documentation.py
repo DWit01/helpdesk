@@ -53,7 +53,7 @@ ERROR_SCHEMA: dict[str, Any] = {
 }
 
 ERROR_DESCRIPTIONS = {
-    "401": "Local identity is disabled, missing or invalid.",
+    "401": "Credentials or required identity/profile claims are invalid.",
     "403": "The current user is inactive or lacks permission.",
     "404": "The requested resource is absent or not visible to this user.",
     "409": "The operation conflicts with business rules or existing data.",
@@ -151,11 +151,18 @@ EXTRA_DESCRIPTIONS = {
 APPLICATION_DESCRIPTION = """
 Helpdesk REST API. Business endpoints use `/api/v1`.
 
-**Current identity support:** temporary local fake identity, disabled by default.
-It works only when `APP_ENV=local`, `FAKE_AUTH_ENABLED=true`, and
-`FAKE_CURRENT_USER_ID` identifies an existing active database user.
-The identity is server-configured. Request headers cannot select a user or role.
-Bearer-token authentication and Keycloak are not implemented yet.
+**Authentication:** business endpoints require a Keycloak Bearer access token.
+The API verifies the signature, expiry, issuer and helpdesk-api audience.
+The verified subject identifies the local user; email is never used to link accounts.
+
+On first authenticated access, the identity service creates the local user.
+For existing active users, it synchronises username, email, optional name and
+the highest recognised token role: admin, then agent, then requester.
+No recognised application role means access is denied.
+Inactive local users remain blocked and are never reactivated by login.
+Profile synchronisation is committed before endpoint business work.
+Role changes reflect the presented valid token, so older unexpired tokens
+can retain their earlier role claims.
 
 **Visibility:** requesters see only their own tickets and public comments.
 Absent, soft-deleted and hidden tickets return the same safe 404 response.
@@ -174,7 +181,7 @@ Both endpoints are public.
 
 
 def error_documentation(status: str) -> dict[str, Any]:
-    """Describe the envelope already produced by the exception handlers."""
+    """Describe the envelope produced by the exception handlers."""
     media: dict[str, Any] = {"schema": {"$ref": "#/components/schemas/ErrorEnvelope"}}
 
     if status in ERROR_EXAMPLES:
@@ -188,9 +195,18 @@ def error_documentation(status: str) -> dict[str, Any]:
             }
         }
 
+    headers: dict[str, Any] = {"X-Request-ID": deepcopy(REQUEST_ID_HEADER)}
+
+    if status == "401":
+        headers["WWW-Authenticate"] = {
+            "description": "Bearer authentication challenge.",
+            "schema": {"type": "string"},
+            "example": "Bearer",
+        }
+
     return {
         "description": ERROR_DESCRIPTIONS[status],
-        "headers": {"X-Request-ID": deepcopy(REQUEST_ID_HEADER)},
+        "headers": headers,
         "content": {"application/json": media},
     }
 
@@ -213,8 +229,20 @@ class DocumentedAPI(FastAPI):
                 responses = operation["responses"]
 
                 if path.startswith("/api/v1/"):
-                    for status in ("401", "403", "422", "500"):
+                    for status in ("401", "403", "409", "422", "500"):
                         responses[status] = error_documentation(status)
+
+                    authentication_failure = error_documentation("503")
+                    authentication_failure["description"] = (
+                        "Authentication configuration or signing keys are unavailable."
+                    )
+                    authentication_failure["content"]["application/json"]["example"]["error"].update(
+                        {
+                            "code": "AUTH_SERVICE_UNAVAILABLE",
+                            "message": "Authentication is temporarily unavailable.",
+                        }
+                    )
+                    responses["503"] = authentication_failure
 
                     # Resource lookups and ticket creation can return 404.
                     has_resource_id = "{" in path
