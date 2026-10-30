@@ -8,6 +8,17 @@ class ApplicationError(Exception):
         self.status_code = status_code
 
 
+class AuthenticationUnavailable(ApplicationError):
+    """Token verification cannot complete because signing keys are unavailable."""
+
+    def __init__(self) -> None:
+        super().__init__(
+            "AUTH_SERVICE_UNAVAILABLE",
+            "Authentication is temporarily unavailable.",
+            503,
+        )
+
+
 class AuthenticationRequired(ApplicationError):
     def __init__(self, message: str = "A valid current user is required.") -> None:
         super().__init__("AUTH_TOKEN_INVALID", message, 401)

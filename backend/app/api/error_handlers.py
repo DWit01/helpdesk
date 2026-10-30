@@ -70,12 +70,12 @@ def error_response(
 async def handle_exception(request: Request, error: Exception) -> JSONResponse:
     """Translate known errors and safely report unexpected failures."""
     if isinstance(error, ApplicationError):
-        # Domain messages are deliberately safe messages from our services.
         return error_response(
             request,
             status_code=error.status_code,
             code=error.code,
             message=error.message,
+            headers={"WWW-Authenticate": "Bearer"} if error.status_code == 401 else None,
         )
 
     if isinstance(error, RequestValidationError):

@@ -3,9 +3,10 @@ import logging
 from fastapi import Request
 from fastapi.responses import JSONResponse
 
-from app.api.documentation import APPLICATION_DESCRIPTION, DocumentedAPI
+from app.api.documentation import APPLICATION_DESCRIPTION
 from app.api.error_handlers import error_response, register_exception_handlers
 from app.api.router import api_router
+from app.application import HelpdeskAPI
 from app.core.config import Settings
 from app.core.logging import configure_logging
 from app.db.readiness import database_is_ready
@@ -18,7 +19,8 @@ logger = logging.getLogger(__name__)
 
 logger.info("application_started")
 
-app = DocumentedAPI(
+
+app = HelpdeskAPI(
     debug=False,
     title="Helpdesk API",
     version="0.1.0",
@@ -31,6 +33,8 @@ app = DocumentedAPI(
         {"name": "Comments", "description": "Public comments and staff-only internal notes."},
     ],
 )
+
+app.cors_allowed_origins = tuple(settings.cors_allowed_origins)
 
 register_exception_handlers(app)
 app.middleware("http")(request_id_middleware)

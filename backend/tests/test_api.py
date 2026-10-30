@@ -790,7 +790,7 @@ def test_disabled_auth_uses_standard_error_envelope(api: Api) -> None:
     assert response.json() == {
         "error": {
             "code": "AUTH_TOKEN_INVALID",
-            "message": "Local fake authentication is disabled.",
+            "message": "A valid current user is required.",
             "details": [],
             "request_id": "auth-error-test",
         }

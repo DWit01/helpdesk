@@ -50,9 +50,16 @@ def test_openapi_is_public_and_does_not_query_database(
     schema = response.json()
     assert schema["info"]["title"] == "Helpdesk API"
     assert schema["info"]["version"] == "0.1.0"
-    assert "Keycloak are not implemented yet" in schema["info"]["description"]
+    assert "Keycloak Bearer access token" in schema["info"]["description"]
     assert not schema.get("security")
-    assert not schema.get("components", {}).get("securitySchemes")
+
+    bearer = schema["components"]["securitySchemes"]["KeycloakBearer"]
+    assert bearer["type"] == "http"
+    assert bearer["scheme"] == "bearer"
+    assert bearer["bearerFormat"] == "JWT"
+
+    for path in ("/health", "/ready"):
+        assert not schema["paths"][path]["get"].get("security")
     assert main.app.openapi() is main.app.openapi_schema
 
 
@@ -90,9 +97,10 @@ def test_business_errors_use_the_actual_envelope(
             if method not in {"get", "post", "put", "patch", "delete"}:
                 continue
 
-            assert not operation.get("security")
+            assert operation["security"] == [{"KeycloakBearer": []}]
+            assert "WWW-Authenticate" in operation["responses"]["401"]["headers"]
             responses = operation["responses"]
-            for status in ("401", "403", "422", "500"):
+            for status in ("401", "403", "422", "500", "503"):
                 assert responses[status]["content"]["application/json"]["schema"] == expected_ref
 
             if method in {"post", "put", "patch", "delete"}:
