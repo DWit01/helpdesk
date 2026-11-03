@@ -3,7 +3,7 @@ from typing import Any
 from uuid import UUID
 
 import pytest
-from httpx import Response
+from httpx2 import Response
 from sqlalchemy import func, select
 
 from app.models import Category, Comment, Ticket, UserRole
