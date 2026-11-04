@@ -15,7 +15,7 @@ synchronous SQLAlchemy 2.x, Alembic and Keycloak authentication.
 - Automated tests, coverage reporting and pre-commit checks.
 
 SQLite is used locally. PostgreSQL compatibility remains unverified.
-The frontend and MCP server are future work.
+The frontend remains future work. The authenticated MCP server is implemented and locally verified.
 
 ## How authentication works in this project
 
@@ -165,13 +165,13 @@ Raw tokens, passwords and private exception details must not be exposed.
 
 Routes call services. Services own business rules and transactions.
 Repositories own queries. ORM models describe persistence.
-Future MCP tools must reuse the same services and security rules.
+MCP tools reuse the same services and security rules.
 
 Tests use isolated databases and generated RSA tokens with mocked
 signing-key transport. Separate local checks have also used real Keycloak
 tokens.
 
-Latest verified automated checkpoint, 30 October 2026:
+Historical Week 4 checkpoint, 30 October 2026:
 
 - 847 passed, 3 skipped.
 - 98.83% application line coverage.
@@ -190,3 +190,29 @@ Keycloak tokens for Alice, Bob and Carol against the existing disposable
 Task 6 SQLite database. It verified representative requester, agent and
 admin workflows, ownership restrictions and internal-note visibility.
 The wider permission matrix is covered by parametrised automated tests.
+
+## Week 5 MCP checkpoint
+
+Locally verified on 4 November 2026:
+
+- Six authenticated Streamable HTTP tools reuse the existing services.
+- `MCP_RESOURCE_URL` is required and defines the expected MCP token audience.
+- Local MCP resource: http://127.0.0.1:8001/mcp
+- REST audience remains `helpdesk-api`.
+- `MCP_LOGIN_CLIENT_ID` defaults to `helpdesk-mcp-local`.
+- Caller identity comes from verified authentication, never tool arguments.
+- Ownership, internal-note restrictions and lifecycle rules remain in services.
+- Audit events include tool, user ID, request ID, outcome and error code.
+
+Verification:
+
+- Focused MCP tests: 130 passed.
+- Full suite: 977 passed, 3 skipped.
+- mypy: 92 source files passed.
+- Ruff, Black and pre-commit checks passed.
+- Real Keycloak/Python SDK, Inspector and Copilot demonstrations passed
+  within the tested local scope.
+
+These are local results, not CI evidence. No new Week 5 coverage measurement
+was supplied. Docker Compose remains deferred; PostgreSQL compatibility,
+branch coverage and general concurrency remain unverified.
