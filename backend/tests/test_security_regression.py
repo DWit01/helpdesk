@@ -4,7 +4,7 @@ from urllib.error import URLError
 
 import jwt
 import pytest
-from httpx import Response
+from httpx2 import Response
 from sqlalchemy import select
 
 from app.db.base import Base
