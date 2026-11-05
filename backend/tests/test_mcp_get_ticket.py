@@ -45,6 +45,7 @@ def test_get_ticket_returns_public_comments_without_internal_notes(
 
     assert payload["ticket"]["id"] == ticket.id
     assert [comment["body"] for comment in payload["comments"]] == [public_comment.body]
+    assert payload["comments"][0]["author"]["username"] == public_comment.author.username
     assert internal_comment.body not in result.model_dump_json()
 
 

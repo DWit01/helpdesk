@@ -40,7 +40,7 @@ class CommentService(Service):
             comment = CommentRepository(self.session).add(
                 Comment(
                     ticket_id=ticket.id,
-                    author_id=actor.id,
+                    author=actor,
                     body=data.body,
                     is_internal=data.is_internal,
                 )

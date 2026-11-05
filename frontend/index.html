@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Sign in to the Helpdesk portal.">
+    <title>Sign in | Helpdesk</title>
+    <link rel="stylesheet" href="./styles.css">
+    <script type="importmap">
+      { "imports": { "keycloak-js": "./node_modules/keycloak-js/lib/keycloak.js" } }
+    </script>
+    <script type="module" src="./dist/main.js"></script>
+  </head>
+  <body>
+    <main class="page">
+      <section class="card" aria-labelledby="page-title">
+        <header class="site-header">
+          <div class="brand-bar">
+            <img class="brand-icon" src="./svg/headset.svg" alt="" aria-hidden="true">
+            <p class="eyebrow">HELPDESK</p>
+          </div>
+          <div class="welcome-panel">
+            <h1 id="page-title">Welcome to Helpdesk</h1>
+            <p class="intro">Sign in to manage your support requests and follow their progress.</p>
+            <p id="profile" class="status" role="status" hidden></p>
+          </div>
+        </header>
+        <section id="dashboard" aria-labelledby="dashboard-title" hidden>
+          <h2 id="dashboard-title">Dashboard</h2>
+          <p>Counts for your visible tickets. Select a status to filter the ticket list.</p>
+          <p id="dashboard-status" class="status" role="status"></p>
+          <div id="dashboard-counts"></div>
+          <h3>Recent tickets</h3>
+          <p id="recent-tickets-status" class="status" role="status"></p>
+          <ul id="recent-tickets" class="ticket-list"></ul>
+          <section id="assigned-tickets-section" aria-labelledby="assigned-tickets-title" hidden>
+            <h3 id="assigned-tickets-title">Assigned to me</h3>
+            <p id="assigned-tickets-status" class="status" role="status"></p>
+            <ul id="assigned-tickets" class="ticket-list"></ul>
+          </section>
+          <button id="refresh-dashboard" type="button">Refresh dashboard</button>
+        </section>
+        <section id="ticket-detail" aria-labelledby="detail-title" hidden>
+          <h2 id="detail-title" tabindex="-1">Ticket details</h2>
+          <p id="detail-status" class="status" role="status"></p>
+          <div id="detail-content"></div>
+          <button id="retry-detail" type="button" hidden>Retry ticket</button>
+          <section id="assignment-section" aria-labelledby="assignment-title" hidden>
+            <h3 id="assignment-title">Assignment</h3>
+            <form id="assignment-form">
+              <label for="assignment-user">Assignee</label>
+              <select id="assignment-user" disabled></select>
+              <button id="assignment-submit" type="submit" disabled>Save assignment</button>
+            </form>
+            <p id="assignment-status" class="status" role="status"></p>
+            <button id="assignment-retry" type="button" hidden>Retry assignees</button>
+          </section>
+          <section id="comments" aria-labelledby="comments-title" hidden>
+            <h3 id="comments-title">Comments</h3>
+            <p id="comments-status" class="status" role="status"></p>
+            <ol id="comments-list" class="comments-list"></ol>
+            <button id="retry-comments" type="button" hidden>Retry comments</button>
+            <form id="comment-form" hidden>
+              <label for="comment-body">Add a public comment</label>
+              <textarea id="comment-body" name="body" required maxlength="2000" rows="4"></textarea>
+              <button id="comment-submit" type="submit">Add comment</button>
+              <p id="comment-submit-status" class="status" role="status"></p>
+            </form>
+            <p id="comment-closed" class="status" hidden>Closed tickets cannot be commented on.</p>
+          </section>
+          <button id="back-to-tickets" type="button">Back to tickets</button>
+        </section>
+        <section id="create-ticket" aria-labelledby="create-title" hidden>
+          <h2 id="create-title">Create ticket</h2>
+          <form id="ticket-form">
+            <label for="ticket-title">Title</label>
+            <input id="ticket-title" name="title" required minlength="5" maxlength="120">
+            <label for="ticket-description">Description</label>
+            <textarea id="ticket-description" name="description" required minlength="10" maxlength="5000" rows="4"></textarea>
+            <label for="ticket-category">Category</label>
+            <select id="ticket-category" name="category" required disabled>
+              <option value="">Choose a category</option>
+            </select>
+            <label for="ticket-priority">Priority</label>
+            <select id="ticket-priority" name="priority">
+              <option value="LOW">Low</option><option value="MEDIUM" selected>Medium</option>
+              <option value="HIGH">High</option><option value="CRITICAL">Critical</option>
+            </select>
+            <button id="create-submit" type="submit" disabled>Create ticket</button>
+            <p id="create-status" class="status" role="status"></p>
+          </form>
+        </section>
+        <section id="tickets" aria-labelledby="tickets-title" hidden>
+          <h2 id="tickets-title">Tickets</h2>
+          <div class="filters">
+            <label for="status-filter">Status</label>
+            <select id="status-filter">
+              <option value="">All statuses</option>
+              <option value="OPEN">Open</option>
+              <option value="IN_PROGRESS">In progress</option>
+              <option value="RESOLVED">Resolved</option>
+              <option value="CLOSED">Closed</option>
+            </select>
+            <label for="priority-filter">Priority</label>
+            <select id="priority-filter">
+              <option value="">All priorities</option>
+              <option value="LOW">Low</option>
+              <option value="MEDIUM">Medium</option>
+              <option value="HIGH">High</option>
+              <option value="CRITICAL">Critical</option>
+            </select>
+            <label for="category-filter">Category</label>
+            <select id="category-filter" disabled>
+              <option value="">All categories</option>
+            </select>
+            <p id="category-status" class="status" role="status">Loading categories...</p>
+            <button id="retry-categories" type="button" hidden>Retry categories</button>
+            <button id="reset-filters" type="button">Reset filters</button>
+          </div>
+          <label for="page-size">Tickets per page</label>
+          <select id="page-size">
+            <option value="2">2</option>
+            <option value="10">10</option>
+            <option value="20" selected>20</option>
+          </select>
+          <p id="tickets-status" class="status" role="status">Loading tickets...</p>
+          <ul id="tickets-list" class="ticket-list"></ul>
+          <nav class="pagination" aria-label="Ticket pages">
+            <button id="previous-page" type="button" disabled>Previous</button>
+            <button id="next-page" type="button" disabled>Next</button>
+          </nav>
+          <button id="retry-tickets" type="button" hidden>Try again</button>
+        </section>
+        <button id="sign-in" type="button" enabled>Sign in</button>
+        <p id="sign-in-status" class="status" role="status">Sign-in is being set up.</p>
+      </section>
+    </main>
+  </body>
+</html>
