@@ -252,6 +252,7 @@ def test_read_schemas_accept_orm_objects(stored_records: tuple[Category, User, T
     assert ticket_read.closed_at is None
     assert comment_read.ticket_id == ticket.id
     assert comment_read.author_id == user.id
+    assert comment_read.author.username == "alice"
 
 
 def test_assigned_ticket_has_nested_user_summary(stored_records: tuple[Category, User, Ticket, Comment]) -> None:

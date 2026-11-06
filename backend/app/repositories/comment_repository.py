@@ -1,5 +1,5 @@
 from sqlalchemy import select
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, selectinload
 
 from app.models.comment import Comment
 from app.models.ticket import Ticket
@@ -13,6 +13,7 @@ class CommentRepository:
         # Join the parent ticket so deleted tickets cannot expose comments.
         statement = (
             select(Comment)
+            .options(selectinload(Comment.author))
             .join(Ticket, Comment.ticket_id == Ticket.id)
             .where(Comment.id == comment_id, Ticket.deleted_at.is_(None))
         )
@@ -24,6 +25,7 @@ class CommentRepository:
     def list_for_ticket(self, ticket_id: int, *, include_internal: bool = False) -> list[Comment]:
         statement = (
             select(Comment)
+            .options(selectinload(Comment.author))
             .join(Ticket, Comment.ticket_id == Ticket.id)
             .where(Comment.ticket_id == ticket_id, Ticket.deleted_at.is_(None))
         )

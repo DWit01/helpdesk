@@ -3,6 +3,7 @@ from uuid import UUID
 from pydantic import Field
 
 from app.schemas.common import InputSchema, PositiveId, ReadSchema, UtcTimestamp
+from app.schemas.user import UserSummary
 
 
 class CommentCreate(InputSchema):
@@ -20,6 +21,7 @@ class CommentRead(ReadSchema):
     id: PositiveId
     ticket_id: PositiveId
     author_id: UUID
+    author: UserSummary
     body: str
     is_internal: bool
     created_at: UtcTimestamp

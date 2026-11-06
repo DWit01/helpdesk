@@ -478,6 +478,7 @@ def test_comment_visibility_admin_edit_and_delete(api: Api) -> None:
         json={"body": "A public requester comment"},
     )
     assert response.status_code == 201
+    assert response.json()["author"]["username"] == f"api-{UserRole.REQUESTER.value}"
     public_id = int(response.json()["id"])
 
     response = api.client.post(
@@ -507,6 +508,8 @@ def test_comment_visibility_admin_edit_and_delete(api: Api) -> None:
     response = api.client.get(f"/api/v1/tickets/{ticket_id}/comments")
     assert response.status_code == 200
     assert [item["id"] for item in response.json()] == [public_id]
+    assert response.json()[0]["author"]["username"] == f"api-{UserRole.REQUESTER.value}"
+    assert set(response.json()[0]["author"]) == {"id", "username"}
 
     assert (
         api.client.put(
@@ -524,6 +527,7 @@ def test_comment_visibility_admin_edit_and_delete(api: Api) -> None:
     assert response.status_code == 200
     assert response.json()["body"] == "Corrected by an administrator"
     assert response.json()["author_id"] == str(api.users[UserRole.REQUESTER])
+    assert response.json()["author"]["username"] == f"api-{UserRole.REQUESTER.value}"
 
     response = api.client.delete(f"/api/v1/comments/{internal_id}")
     assert response.status_code == 204
