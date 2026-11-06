@@ -17,7 +17,7 @@ export const dashboardCounts = document.querySelector<HTMLElement>("#dashboard-c
 export const refreshDashboard = document.querySelector<HTMLButtonElement>("#refresh-dashboard");
 export const ticketsSection = document.querySelector<HTMLElement>("#tickets");
 export const ticketsStatus = document.querySelector<HTMLElement>("#tickets-status");
-export const ticketsList = document.querySelector<HTMLUListElement>("#tickets-list");
+export const ticketsList = document.querySelector<HTMLTableSectionElement>("#tickets-list");
 export const previousPage = document.querySelector<HTMLButtonElement>("#previous-page");
 export const nextPage = document.querySelector<HTMLButtonElement>("#next-page");
 export const pageSize = document.querySelector<HTMLSelectElement>("#page-size");
@@ -58,8 +58,34 @@ export const state = {
   dashboardRequest: 0,
   assignedRequest: 0,
   userRole: null as string | null,
+  userId: null as string | null,
+  ticketStatus: null as string | null,
+  needsTicketRefresh: false,
   selectedTicketId: null as number | null,
 };
+
+// Keep only navigation state in this browser tab, never authentication tokens.
+const selectedTicketKey = "helpdesk.selectedTicketId";
+
+export function rememberTicket(id: number | null): void {
+  try {
+    if (id === null) sessionStorage.removeItem(selectedTicketKey);
+    else sessionStorage.setItem(selectedTicketKey, String(id));
+  } catch {
+    // Navigation still works when browser storage is unavailable.
+  }
+}
+
+export function rememberedTicket(): number | null {
+  try {
+    const value = sessionStorage.getItem(selectedTicketKey);
+    if (!value || !/^[1-9]\d*$/.test(value)) return null;
+    const id = Number(value);
+    return positiveId(id) ? id : null;
+  } catch {
+    return null;
+  }
+}
 
 
 export function isRecord(value: unknown): value is Record<string, unknown> {

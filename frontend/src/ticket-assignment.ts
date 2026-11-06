@@ -1,4 +1,4 @@
-import { ApiError } from "./api-client.js";
+import { ApiError, authRefreshMessage, readErrorMessage, withRequestId, writeErrorMessage } from "./api-client.js";
 import { api, isRecord, state } from "./screen-context.js";
 
 const section = document.querySelector<HTMLElement>("#assignment-section");
@@ -53,9 +53,9 @@ export async function showAssignment(ticketId: number, assigneeId: string | null
     select.disabled = false;
     submit.disabled = false;
     message.textContent = "";
-  } catch {
+  } catch (error: unknown) {
     if (request !== assignmentRequest || state.selectedTicketId !== ticketId) return;
-    message.textContent = "We couldn't load assignees. Please try again.";
+    message.textContent = readErrorMessage(error, "We couldn't load assignees. Please try again.");
     retry.hidden = false;
   }
 }
@@ -81,13 +81,17 @@ export function setupAssignment(onSaved: (ticketId: number) => void): void {
         onSaved(ticketId);
       } catch (error: unknown) {
         if (request !== assignmentRequest || state.selectedTicketId !== ticketId) return;
-        if (error instanceof ApiError && error.status >= 400 && error.status < 500) {
-          feedback.textContent = error.status === 401 ? "Please sign in again." :
-            "Assignment could not be saved. Check the ticket and selected assignee.";
+        const authMessage = authRefreshMessage(error);
+        if (authMessage) {
+          feedback.textContent = authMessage;
+          selected.disabled = false;
+          button.disabled = false;
+        } else if (error instanceof ApiError && error.status >= 400 && error.status < 500) {
+          feedback.textContent = writeErrorMessage(error, "Assignment could not be saved. Reopen the ticket and try again.");
           selected.disabled = false;
           button.disabled = false;
         } else {
-          feedback.textContent = "We couldn't confirm the assignment. Reopen the ticket to check before trying again.";
+          feedback.textContent = withRequestId("We couldn't confirm the assignment. Reopen the ticket to check before trying again.", error);
         }
       }
     })();

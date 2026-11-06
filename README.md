@@ -171,7 +171,7 @@ Tests use isolated databases and generated RSA tokens with mocked
 signing-key transport. Separate local checks have also used real Keycloak
 tokens.
 
-Historical Week 4 checkpoint, 30 October 2026:
+Historical checkpoint, 30 October 2026:
 
 - 847 passed, 3 skipped.
 - 98.83% application line coverage.
@@ -185,13 +185,13 @@ Outstanding issues include the Starlette/httpx deprecation,
 pytest-cache WinError 183 and previously observed Git directory-deletion
 failures.
 
-The live Week 4 demonstration passed on 30 October 2026 using real
+The live demonstration passed on 30 October 2026 using real
 Keycloak tokens for Alice, Bob and Carol against the existing disposable
 Task 6 SQLite database. It verified representative requester, agent and
 admin workflows, ownership restrictions and internal-note visibility.
 The wider permission matrix is covered by parametrised automated tests.
 
-## Week 5 MCP checkpoint
+## MCP checkpoint
 
 Locally verified on 4 November 2026:
 
@@ -213,6 +213,6 @@ Verification:
 - Real Keycloak/Python SDK, Inspector and Copilot demonstrations passed
   within the tested local scope.
 
-These are local results, not CI evidence. No new Week 5 coverage measurement
-was supplied. Docker Compose remains deferred; PostgreSQL compatibility,
-branch coverage and general concurrency remain unverified.
+These are local results, not CI evidence. No new coverage measurement was
+supplied for this checkpoint. Docker Compose remains deferred; PostgreSQL
+compatibility, branch coverage and general concurrency remain unverified.

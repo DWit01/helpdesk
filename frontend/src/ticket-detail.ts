@@ -1,7 +1,19 @@
-import { ApiError } from "./api-client.js";
+import { ApiError, authRefreshMessage, readErrorMessage, withRequestId, writeErrorMessage } from "./api-client.js";
 import { api, status, dashboard, ticketsSection, createSection, detailSection, detailTitle, detailStatus, detailContent, retryDetail, backToTickets, commentsSection, commentsStatus, commentsList, retryComments, commentForm, commentBody, commentSubmit, commentSubmitStatus, commentClosed, state, isRecord, positiveId, formatDateTime, ticketLabel } from "./screen-context.js";
 import { clearAssignment, setupAssignment, showAssignment } from "./ticket-assignment.js";
 import { loadAssignedTickets } from "./dashboard.js";
+import { loadDashboard } from "./dashboard.js";
+import { clearStatusActions, showStatusActions } from "./ticket-status.js";
+import { rememberTicket, statusFilter } from "./screen-context.js";
+import { hideCategoryAdmin, showCategoryAdmin } from "./category-admin.js";
+import { clearTicketEdit, setupTicketEdit, showTicketEdit } from "./ticket-edit.js";
+import { addCommentEdit } from "./comment-edit.js";
+import { addCommentDelete } from "./comment-delete.js";
+import { clearTicketDelete, setupTicketDelete, showTicketDelete } from "./ticket-delete.js";
+
+const internalOption = document.querySelector<HTMLElement>("#comment-internal-option");
+const internalCheckbox = document.querySelector<HTMLInputElement>("#comment-internal");
+const publicHint = document.querySelector<HTMLElement>("#comment-public-hint");
 
 async function loadComments(id: number): Promise<void> {
   if (!commentsSection || !commentsStatus || !commentsList || !retryComments) return;
@@ -36,15 +48,15 @@ async function loadComments(id: number): Promise<void> {
       body.className = "comment-body";
       body.textContent = comment.body;
       row.append(meta, body);
+      addCommentEdit(row, id, comment.id, comment.author_id, comment.body, () => { void loadComments(id); });
+      addCommentDelete(row, id, comment.id, comment.author_id, () => { void loadComments(id); });
       rows.push(row);
     }
     commentsList.replaceChildren(...rows);
     commentsStatus.textContent = rows.length === 0 ? "No comments to show." : "";
   } catch (error: unknown) {
     if (request !== state.commentsRequest || state.selectedTicketId !== id) return;
-    commentsStatus.textContent = error instanceof ApiError && error.status === 401
-      ? "Your session could not be verified. Please sign in again."
-      : "We couldn't load comments. Please try again.";
+    commentsStatus.textContent = readErrorMessage(error, "We couldn't load comments. Please try again.");
     retryComments.hidden = false;
   }
 }
@@ -53,18 +65,27 @@ export async function openTicket(id: number): Promise<void> {
   if (!detailSection || !detailStatus || !detailContent || !retryDetail) return;
   const request = ++state.detailRequest;
   clearAssignment();
+  clearStatusActions();
+  clearTicketEdit();
+  clearTicketDelete();
   state.commentsRequest++;
+  state.ticketStatus = null;
   if (commentsSection) commentsSection.hidden = true;
   commentsList?.replaceChildren();
   if (commentForm) { commentForm.hidden = true; commentForm.reset(); }
+  if (internalCheckbox) { internalCheckbox.checked = false; internalCheckbox.disabled = false; }
+  if (internalOption) internalOption.hidden = true;
+  if (publicHint) publicHint.hidden = true;
   if (commentSubmit) commentSubmit.disabled = false;
   if (commentSubmitStatus) commentSubmitStatus.textContent = "";
   if (commentClosed) commentClosed.hidden = true;
   state.selectedTicketId = id;
+  rememberTicket(id);
   detailSection.hidden = false;
   if (ticketsSection) ticketsSection.hidden = true;
   if (createSection) createSection.hidden = true;
   if (dashboard) dashboard.hidden = true;
+  hideCategoryAdmin();
   detailTitle?.focus();
   detailContent.replaceChildren();
   detailStatus.textContent = "Loading ticket...";
@@ -75,7 +96,7 @@ export async function openTicket(id: number): Promise<void> {
     if (!isRecord(ticket) || ticket.id !== id || typeof ticket.ticket_number !== "string" ||
         typeof ticket.title !== "string" || typeof ticket.description !== "string" ||
         typeof ticket.status !== "string" || typeof ticket.priority !== "string" ||
-        !isRecord(ticket.category) || typeof ticket.category.name !== "string" ||
+        !isRecord(ticket.category) || !positiveId(ticket.category.id) || typeof ticket.category.name !== "string" ||
         !isRecord(ticket.requester) || typeof ticket.requester.username !== "string" ||
         !(ticket.assignee === null || (isRecord(ticket.assignee) && typeof ticket.assignee.id === "string" && typeof ticket.assignee.username === "string")) ||
         typeof ticket.created_at !== "string" || typeof ticket.updated_at !== "string" ||
@@ -114,23 +135,30 @@ export async function openTicket(id: number): Promise<void> {
     }
     detailContent.replaceChildren(details);
     detailStatus.textContent = "";
+    state.ticketStatus = ticket.status;
+    showTicketDelete();
     if (commentForm) commentForm.hidden = ticket.status === "CLOSED";
     if (commentClosed) commentClosed.hidden = ticket.status !== "CLOSED";
+    const staff = state.userRole === "agent" || state.userRole === "admin";
+    if (internalOption) internalOption.hidden = !staff;
+    if (publicHint) publicHint.hidden = !staff;
+    void showTicketEdit({ id, title: ticket.title, description: ticket.description, status: ticket.status,
+      priority: ticket.priority, categoryId: ticket.category.id, categoryName: ticket.category.name });
+    showStatusActions(id, ticket.status, ticket.assignee !== null, ticketId => { void openTicket(ticketId); });
     void showAssignment(id, ticket.assignee === null ? null : ticket.assignee.id as string, ticket.status);
     void loadComments(id);
   } catch (error: unknown) {
     if (request !== state.detailRequest) return;
-    detailStatus.textContent = error instanceof ApiError && error.status === 401
-      ? "Your session could not be verified. Please sign in again."
-      : error instanceof ApiError && error.status === 404
-        ? "This ticket is unavailable."
-        : "We couldn't load this ticket. Please try again.";
+    detailStatus.textContent = readErrorMessage(error, error instanceof ApiError && error.status === 404
+      ? "This ticket is unavailable." : "We couldn't load this ticket. Please try again.");
     retryDetail.hidden = false;
   }
 }
 
 
 export function setupTicketDetail(): void {
+setupTicketDelete(() => { backToTickets?.click(); });
+setupTicketEdit(ticketId => { void openTicket(ticketId); });
 setupAssignment(ticketId => { void openTicket(ticketId); void loadAssignedTickets(); });
 retryDetail?.addEventListener("click", () => {
   if (state.selectedTicketId !== null) void openTicket(state.selectedTicketId);
@@ -150,24 +178,32 @@ if (commentForm && commentBody && commentSubmit && commentSubmitStatus) {
       return;
     }
     const request = state.detailRequest;
+    const isInternal = (state.userRole === "agent" || state.userRole === "admin") && internalCheckbox?.checked === true;
     submit.disabled = true;
+    if (internalCheckbox) internalCheckbox.disabled = true;
     feedback.textContent = "Adding comment...";
     void (async () => {
       try {
-        await api.post(`/tickets/${ticketId}/comments`, { body: text, is_internal: false });
+        await api.post(`/tickets/${ticketId}/comments`, { body: text, is_internal: isInternal });
         if (request !== state.detailRequest || state.selectedTicketId !== ticketId) return;
         form.reset();
-        feedback.textContent = "Comment added.";
+        feedback.textContent = isInternal ? "Internal note added." : "Comment added.";
         submit.disabled = false;
+        if (internalCheckbox) internalCheckbox.disabled = false;
         void loadComments(ticketId);
       } catch (error: unknown) {
         if (request !== state.detailRequest || state.selectedTicketId !== ticketId) return;
-        if (error instanceof ApiError && error.status >= 400 && error.status < 500) {
-          feedback.textContent = error.status === 401 ? "Please sign in again." :
-            "The comment could not be added. Check the ticket and your permissions.";
+        const authMessage = authRefreshMessage(error);
+        if (authMessage) {
+          feedback.textContent = authMessage;
           submit.disabled = false;
+          if (internalCheckbox) internalCheckbox.disabled = false;
+        } else if (error instanceof ApiError && error.status >= 400 && error.status < 500) {
+          feedback.textContent = writeErrorMessage(error, "The comment could not be added.");
+          submit.disabled = false;
+          if (internalCheckbox) internalCheckbox.disabled = false;
         } else {
-          feedback.textContent = "We couldn't confirm whether the comment was added. Check the comments before trying again.";
+          feedback.textContent = withRequestId("We couldn't confirm whether the comment was added. Check the comments before trying again.", error);
         }
       }
     })();
@@ -175,13 +211,24 @@ if (commentForm && commentBody && commentSubmit && commentSubmitStatus) {
 }
 backToTickets?.addEventListener("click", () => {
   clearAssignment();
+  clearStatusActions();
+  clearTicketEdit();
+  clearTicketDelete();
   state.detailRequest++;
   state.commentsRequest++;
   state.selectedTicketId = null;
+  state.ticketStatus = null;
+  rememberTicket(null);
   if (detailSection) detailSection.hidden = true;
   if (ticketsSection) ticketsSection.hidden = false;
   if (createSection) createSection.hidden = false;
   if (dashboard) dashboard.hidden = false;
+  showCategoryAdmin();
+  if (state.needsTicketRefresh) {
+    state.needsTicketRefresh = false;
+    void loadDashboard();
+    statusFilter?.dispatchEvent(new Event("change"));
+  }
   document.querySelector<HTMLElement>("#tickets-title")?.scrollIntoView();
 });
 }

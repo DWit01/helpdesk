@@ -1,12 +1,20 @@
-import { ApiError } from "./api-client.js";
+import { ApiError, authRefreshMessage, withRequestId, writeErrorMessage } from "./api-client.js";
 import { api, createSection, ticketForm, createCategory, createButton, createStatus, positiveId, state } from "./screen-context.js";
 import { openTicket } from "./ticket-detail.js";
 import { loadDashboard } from "./dashboard.js";
+
+const cancelCreate = document.querySelector<HTMLButtonElement>("#create-cancel");
 
 export function setupCreateTicket(load: () => void): void {
   if (createSection && ticketForm && createCategory && createButton && createStatus) {
     const form = ticketForm, submit = createButton, feedback = createStatus, category = createCategory;
     createSection.hidden = false;
+    cancelCreate?.addEventListener("click", () => {
+      if (!cancelCreate || cancelCreate.disabled) return;
+      form.reset();
+      feedback.textContent = "";
+      document.querySelector<HTMLElement>("#tickets-title")?.scrollIntoView();
+    });
     form.addEventListener("submit", (event) => {
       event.preventDefault();
       if (submit.disabled || !form.reportValidity()) return;
@@ -18,6 +26,7 @@ export function setupCreateTicket(load: () => void): void {
         return;
       }
       submit.disabled = true;
+      if (cancelCreate) cancelCreate.disabled = true;
       feedback.textContent = "Creating ticket...";
       void (async () => {
         try {
@@ -32,15 +41,20 @@ export function setupCreateTicket(load: () => void): void {
           load();
           void loadDashboard();
           submit.disabled = false;
+          if (cancelCreate) cancelCreate.disabled = false;
           void openTicket(result.id);
         } catch (error: unknown) {
-          if (error instanceof ApiError && error.status >= 400 && error.status < 500) {
-            feedback.textContent = error.status === 401 ? "Please sign in again." :
-              error.status === 422 ? "Please check the ticket fields and try again." :
-              "The ticket could not be created. Please check your details and permissions.";
+          const authMessage = authRefreshMessage(error);
+          if (authMessage) {
+            feedback.textContent = authMessage;
             submit.disabled = false;
+            if (cancelCreate) cancelCreate.disabled = false;
+          } else if (error instanceof ApiError && error.status >= 400 && error.status < 500) {
+            feedback.textContent = writeErrorMessage(error, "The ticket could not be created. Please check your details and try again.");
+            submit.disabled = false;
+            if (cancelCreate) cancelCreate.disabled = false;
           } else {
-            feedback.textContent = "We couldn't confirm whether the ticket was created. Check your ticket list before trying again.";
+            feedback.textContent = withRequestId("We couldn't confirm whether the ticket was created. Check your ticket list before trying again.", error);
           }
         }
       })();

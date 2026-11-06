@@ -1,4 +1,4 @@
-import { ApiError } from "./api-client.js";
+import { readErrorMessage } from "./api-client.js";
 import { api, dashboard, dashboardStatus, dashboardCounts, refreshDashboard, statusFilter, priorityFilter, categoryFilter, state, isRecord, positiveId } from "./screen-context.js";
 import { openTicket } from "./ticket-detail.js";
 
@@ -20,7 +20,7 @@ export async function loadAssignedTickets(): Promise<void> {
   assignedTickets.replaceChildren();
   assignedStatus.textContent = "Loading assigned tickets...";
   try {
-    const data = await api.get("/tickets?assignee=me&page=1&page_size=5&sort=-created_at");
+    const data = await api.get("/tickets?assignee=me&status=OPEN&status=IN_PROGRESS&status=RESOLVED&page=1&page_size=5&sort=-created_at");
     if (request !== state.assignedRequest) return;
     if (!isRecord(data) || !Array.isArray(data.items) || typeof data.total !== "number" ||
         !Number.isSafeInteger(data.total) || data.total < 0) throw new Error("Invalid assigned tickets");
@@ -40,13 +40,11 @@ export async function loadAssignedTickets(): Promise<void> {
     }
     assignedTickets.replaceChildren(...rows);
     assignedStatus.textContent = data.total === 0
-      ? "No tickets assigned to you."
-      : `${data.total} assigned tickets${data.total > rows.length ? ` · Showing ${rows.length} newest` : ""}.`;
+      ? "No open, in-progress or resolved tickets assigned to you."
+      : `${data.total} assigned ${data.total === 1 ? "ticket" : "tickets"}${data.total > rows.length ? ` · Showing ${rows.length} newest` : ""}.`;
   } catch (error: unknown) {
     if (request !== state.assignedRequest) return;
-    assignedStatus.textContent = error instanceof ApiError && error.status === 401
-      ? "Your session could not be verified. Please sign in again."
-      : "We couldn't load assigned tickets. Please refresh the dashboard.";
+    assignedStatus.textContent = readErrorMessage(error, "We couldn't load assigned tickets. Please refresh the dashboard.");
   }
 }
 async function loadRecentTickets(request: number): Promise<void> {
@@ -75,9 +73,7 @@ async function loadRecentTickets(request: number): Promise<void> {
     recentStatus.textContent = rows.length ? "" : "No recent tickets to show.";
   } catch (error: unknown) {
     if (request !== state.dashboardRequest) return;
-    recentStatus.textContent = error instanceof ApiError && error.status === 401
-      ? "Your session could not be verified. Please sign in again."
-      : "We couldn't load recent tickets. Please refresh the dashboard.";
+    recentStatus.textContent = readErrorMessage(error, "We couldn't load recent tickets. Please refresh the dashboard.");
   }
 }
 
@@ -119,6 +115,10 @@ export async function loadDashboard(): Promise<void> {
         statusFilter.value = value;
         if (priorityFilter) priorityFilter.value = "";
         if (categoryFilter) categoryFilter.value = "";
+        window.dispatchEvent(new Event("helpdesk:clear-search"));
+        window.dispatchEvent(new Event("helpdesk:clear-dates"));
+        window.dispatchEvent(new Event("helpdesk:clear-assignee"));
+        window.dispatchEvent(new Event("helpdesk:clear-requester"));
         statusFilter.dispatchEvent(new Event("change"));
         document.querySelector<HTMLElement>("#tickets-title")?.scrollIntoView();
       });
@@ -137,9 +137,7 @@ export async function loadDashboard(): Promise<void> {
     dashboardStatus.textContent = total === 0 ? "No tickets to show yet." : "";
   } catch (error: unknown) {
     if (request !== state.dashboardRequest) return;
-    dashboardStatus.textContent = error instanceof ApiError && error.status === 401
-      ? "Your session could not be verified. Please sign in again."
-      : "We couldn't load ticket counts. Please try refreshing the dashboard.";
+    dashboardStatus.textContent = readErrorMessage(error, "We couldn't load ticket counts. Please try refreshing the dashboard.");
   } finally {
     if (request === state.dashboardRequest) refreshDashboard.disabled = false;
   }

@@ -4,20 +4,21 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="description" content="Sign in to the Helpdesk portal.">
-    <title>Sign in | Helpdesk</title>
+    <title>Helpdesk</title>
     <link rel="stylesheet" href="./styles.css">
     <script type="importmap">
       { "imports": { "keycloak-js": "./node_modules/keycloak-js/lib/keycloak.js" } }
     </script>
     <script type="module" src="./dist/main.js"></script>
   </head>
-  <body>
+  <body class="auth-checking">
+    <p class="session-loading" role="status">Checking your session...</p>
     <main class="page">
       <section class="card" aria-labelledby="page-title">
         <header class="site-header">
           <div class="brand-bar">
             <img class="brand-icon" src="./svg/headset.svg" alt="" aria-hidden="true">
-            <p class="eyebrow">HELPDESK</p>
+            <button class="eyebrow brand-home" type="button">HELPDESK</button>
           </div>
           <div class="welcome-panel">
             <h1 id="page-title">Welcome to Helpdesk</h1>
@@ -35,6 +36,7 @@
           <ul id="recent-tickets" class="ticket-list"></ul>
           <section id="assigned-tickets-section" aria-labelledby="assigned-tickets-title" hidden>
             <h3 id="assigned-tickets-title">Assigned to me</h3>
+            <p>Open, in-progress and resolved tickets assigned to you.</p>
             <p id="assigned-tickets-status" class="status" role="status"></p>
             <ul id="assigned-tickets" class="ticket-list"></ul>
           </section>
@@ -45,6 +47,35 @@
           <p id="detail-status" class="status" role="status"></p>
           <div id="detail-content"></div>
           <button id="retry-detail" type="button" hidden>Retry ticket</button>
+          <section id="ticket-edit" aria-labelledby="ticket-edit-heading" hidden>
+            <h3 id="ticket-edit-heading">Edit ticket</h3>
+            <form id="ticket-edit-form">
+              <label for="ticket-edit-title">Title</label>
+              <input id="ticket-edit-title" required minlength="5" maxlength="120">
+              <label for="ticket-edit-description">Description</label>
+              <textarea id="ticket-edit-description" required minlength="10" maxlength="5000" rows="4"></textarea>
+              <label for="ticket-edit-category">Category</label>
+              <select id="ticket-edit-category" disabled></select>
+              <div id="ticket-edit-priority-field" hidden>
+                <label for="ticket-edit-priority">Priority</label>
+                <select id="ticket-edit-priority">
+                  <option value="LOW">Low</option><option value="MEDIUM">Medium</option>
+                  <option value="HIGH">High</option><option value="CRITICAL">Critical</option>
+                </select>
+              </div>
+              <button id="ticket-edit-submit" type="submit" disabled>Save ticket</button>
+              <p id="ticket-edit-status" class="status" role="status"></p>
+            </form>
+          </section>
+          <section id="status-actions" aria-labelledby="status-actions-title" hidden>
+            <h3 id="status-actions-title">Change status</h3>
+            <div id="status-buttons"></div>
+            <div id="resolution-fields" hidden>
+              <label for="resolution-comment">Resolution comment</label>
+              <textarea id="resolution-comment" maxlength="2000" rows="3"></textarea>
+            </div>
+            <p id="status-actions-message" class="status" role="status"></p>
+          </section>
           <section id="assignment-section" aria-labelledby="assignment-title" hidden>
             <h3 id="assignment-title">Assignment</h3>
             <form id="assignment-form">
@@ -55,14 +86,29 @@
             <p id="assignment-status" class="status" role="status"></p>
             <button id="assignment-retry" type="button" hidden>Retry assignees</button>
           </section>
+          <section id="ticket-delete" aria-labelledby="ticket-delete-title" hidden>
+            <h3 id="ticket-delete-title">Delete ticket</h3>
+            <button id="ticket-delete-start" type="button">Delete ticket</button>
+            <div id="ticket-delete-confirmation" hidden>
+              <p>This will remove the ticket from normal views. Continue?</p>
+              <button id="ticket-delete-confirm" type="button">Confirm delete</button>
+              <button id="ticket-delete-cancel" type="button">Cancel</button>
+            </div>
+            <p id="ticket-delete-status" class="status" role="status"></p>
+          </section>
           <section id="comments" aria-labelledby="comments-title" hidden>
             <h3 id="comments-title">Comments</h3>
             <p id="comments-status" class="status" role="status"></p>
             <ol id="comments-list" class="comments-list"></ol>
             <button id="retry-comments" type="button" hidden>Retry comments</button>
             <form id="comment-form" hidden>
-              <label for="comment-body">Add a public comment</label>
+              <label for="comment-body">Add a comment</label>
               <textarea id="comment-body" name="body" required maxlength="2000" rows="4"></textarea>
+              <label id="comment-internal-option" hidden>
+                <input id="comment-internal" type="checkbox">
+                Internal note (visible only to agents and admins)
+              </label>
+              <p id="comment-public-hint" class="status" hidden>Comments are public unless marked as an internal note.</p>
               <button id="comment-submit" type="submit">Add comment</button>
               <p id="comment-submit-status" class="status" role="status"></p>
             </form>
@@ -87,11 +133,65 @@
               <option value="HIGH">High</option><option value="CRITICAL">Critical</option>
             </select>
             <button id="create-submit" type="submit" disabled>Create ticket</button>
+              <button id="create-cancel" type="button">Cancel</button>
             <p id="create-status" class="status" role="status"></p>
+          </form>
+        </section>
+        <section id="category-admin" aria-labelledby="category-admin-title" hidden>
+          <h2 id="category-admin-title">Category administration</h2>
+          <p id="category-admin-status" class="status" role="status"></p>
+          <ul id="category-admin-list" class="category-admin-list"></ul>
+          <button id="category-admin-retry" type="button" hidden>Retry categories</button>
+          <form id="category-edit-form" hidden>
+            <h3>Edit category</h3>
+            <label for="category-edit-name">Name</label>
+            <input id="category-edit-name" name="name" required minlength="2" maxlength="60">
+            <label for="category-edit-description">Description (optional)</label>
+            <textarea id="category-edit-description" name="description" maxlength="255" rows="3"></textarea>
+            <label><input id="category-edit-active" type="checkbox" name="is_active"> Active</label>
+            <div><button id="category-edit-submit" type="submit">Save category</button>
+              <button id="category-edit-cancel" type="button">Cancel</button></div>
+            <p id="category-edit-status" class="status" role="status"></p>
+          </form>
+          <form id="category-create-form">
+            <h3>Create category</h3>
+            <label for="category-name">Name</label>
+            <input id="category-name" name="name" required minlength="2" maxlength="60">
+            <label for="category-description">Description (optional)</label>
+            <textarea id="category-description" name="description" maxlength="255" rows="3"></textarea>
+            <button id="category-create-submit" type="submit">Create category</button>
+            <p id="category-create-status" class="status" role="status"></p>
           </form>
         </section>
         <section id="tickets" aria-labelledby="tickets-title" hidden>
           <h2 id="tickets-title">Tickets</h2>
+          <form id="ticket-search-form" role="search">
+            <label for="ticket-search">Search title or description</label>
+            <input id="ticket-search" type="search" maxlength="200">
+            <button id="ticket-search-submit" type="submit">Search</button>
+          </form>
+          <form id="ticket-date-form">
+            <label for="ticket-date-from">Created on or after (UTC)</label>
+            <input id="ticket-date-from" type="date">
+            <label for="ticket-date-before">Created before (UTC)</label>
+            <input id="ticket-date-before" type="date">
+            <button id="ticket-date-submit" type="submit">Apply dates</button>
+            <p id="ticket-date-status" class="status" role="status"></p>
+          </form>
+          <div id="assignee-filter-section" hidden>
+            <label for="assignee-filter">Assignee</label>
+            <select id="assignee-filter" disabled>
+              <option value="">All assignees</option>
+            </select>
+            <p id="assignee-filter-status" class="status" role="status"></p>
+            <button id="assignee-filter-retry" type="button" hidden>Retry user filters</button>
+          </div>
+          <div id="requester-filter-section" hidden>
+            <label for="requester-filter">Requester</label>
+            <select id="requester-filter" disabled>
+              <option value="">All requesters</option>
+            </select>
+          </div>
           <div class="filters">
             <label for="status-filter">Status</label>
             <select id="status-filter">
@@ -117,6 +217,15 @@
             <button id="retry-categories" type="button" hidden>Retry categories</button>
             <button id="reset-filters" type="button">Reset filters</button>
           </div>
+          <label for="ticket-sort">Sort tickets</label>
+          <select id="ticket-sort">
+            <option value="-created_at">Newest first</option>
+            <option value="created_at">Oldest first</option>
+            <option value="-priority">Priority: critical first</option>
+            <option value="priority">Priority: low first</option>
+            <option value="status">Status: open first</option>
+            <option value="-status">Status: closed first</option>
+          </select>
           <label for="page-size">Tickets per page</label>
           <select id="page-size">
             <option value="2">2</option>
@@ -124,7 +233,14 @@
             <option value="20" selected>20</option>
           </select>
           <p id="tickets-status" class="status" role="status">Loading tickets...</p>
-          <ul id="tickets-list" class="ticket-list"></ul>
+          <table class="ticket-table">
+            <caption class="visually-hidden">Visible tickets</caption>
+            <thead>
+              <tr><th scope="col">Ticket</th><th scope="col">Title</th><th scope="col">Category</th>
+                <th scope="col">Priority</th><th scope="col">Status</th><th scope="col">Assignee</th><th scope="col">Created</th></tr>
+            </thead>
+            <tbody id="tickets-list"></tbody>
+          </table>
           <nav class="pagination" aria-label="Ticket pages">
             <button id="previous-page" type="button" disabled>Previous</button>
             <button id="next-page" type="button" disabled>Next</button>
