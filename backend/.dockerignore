@@ -1,0 +1,16 @@
+*
+!app/
+!app/**
+!pyproject.toml
+!uv.lock
+!Dockerfile
+!alembic.ini
+!migrations/
+!migrations/**
+**/__pycache__/
+**/*.pyc
+**/.env
+**/.env.*
+**/*.db
+**/*.sqlite
+**/*.sqlite3

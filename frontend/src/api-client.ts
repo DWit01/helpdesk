@@ -59,7 +59,10 @@ export function readErrorMessage(error: unknown, fallback: string): string {
 }
 
 export class ApiClient {
-  constructor(private readonly keycloak: Keycloak) {}
+  constructor(
+    private readonly keycloak: Keycloak,
+    private readonly apiBaseUrl: string,
+  ) {}
 
   async get(path: string): Promise<unknown> {
     return this.request(path, "GET");
@@ -97,7 +100,7 @@ export class ApiClient {
     const controller = new AbortController();
     const timeout = window.setTimeout(() => controller.abort(), 10000);
     try {
-      const response = await fetch(`http://127.0.0.1:8000/api/v1${path}`, {
+      const response = await fetch(`${this.apiBaseUrl}/api/v1${path}`, {
         method,
         headers: method !== "GET" && method !== "DELETE"
           ? { Authorization: `Bearer ${token}`, "Content-Type": "application/json" }
