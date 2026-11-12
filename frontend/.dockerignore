@@ -1,0 +1,15 @@
+*
+!src/
+!src/**
+!svg/
+!svg/**
+!index.html
+!styles.css
+!config.js
+!package.json
+!package-lock.json
+!tsconfig.json
+!Dockerfile
+**/__pycache__/
+**/.env
+**/.env.*

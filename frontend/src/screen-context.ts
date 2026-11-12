@@ -1,12 +1,15 @@
 import Keycloak from "keycloak-js";
 import { ApiClient } from "./api-client.js";
+import { getConfig } from "./config.js";
+
+const config = getConfig();
 
 export const keycloak = new Keycloak({
-  url: "http://127.0.0.1:8080",
+  url: config.keycloakUrl,
   realm: "helpdesk",
   clientId: "helpdesk-ui",
 });
-export const api = new ApiClient(keycloak);
+export const api = new ApiClient(keycloak, config.apiBaseUrl);
 
 export const signIn = document.querySelector<HTMLButtonElement>("#sign-in");
 export const status = document.querySelector<HTMLElement>("#sign-in-status");
