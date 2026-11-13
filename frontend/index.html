@@ -23,8 +23,18 @@
           </div>
           <div class="welcome-panel">
             <h1 id="page-title">Welcome to Helpdesk</h1>
-            <p class="intro">Sign in to manage your support requests and follow their progress.</p>
+            <p class="intro">Sign in to view and manage your support tickets.</p>
             <p id="profile" class="status" role="status" hidden></p>
+          </div>
+          <div class="login-overview">
+            <div class="login-illustration" aria-hidden="true">
+              <div class="login-laptop"><img src="./svg/ticket-svgrepo-com.svg" alt=""><img class="login-check" src="./svg/circle-check-svgrepo-com.svg" alt=""></div>
+            </div>
+            <ul class="login-features">
+              <li><img src="./svg/ticket-svgrepo-com.svg" alt=""><strong>Track Tickets</strong><span>View your requests and updates</span></li>
+              <li><img src="./svg/bar-chart-svgrepo-com.svg" alt=""><strong>Get Help</strong><span>Follow your support progress</span></li>
+              <li><img src="./svg/shield-check-svgrepo-com.svg" alt=""><strong>Secure Access</strong><span>Your data is protected</span></li>
+            </ul>
           </div>
         </header>
         <section id="dashboard" aria-labelledby="dashboard-title" hidden>
@@ -248,8 +258,12 @@
           </nav>
           <button id="retry-tickets" type="button" hidden>Try again</button>
         </section>
-        <button id="sign-in" type="button" enabled>Sign in</button>
-        <p id="sign-in-status" class="status" role="status">Sign-in is being set up.</p>
+        <div class="sign-in-panel">
+          <div class="sign-in-intro"><h2>Sign In</h2><p>Use your Keycloak account to continue</p></div>
+          <button id="sign-in" type="button">Sign in</button>
+          <p class="sign-in-notice"><img src="./svg/info-circle-svgrepo-com.svg" alt=""> You'll be redirected to Keycloak to securely sign in.</p>
+          <p id="sign-in-status" class="status" role="status">Sign-in is being set up.</p>
+        </div>
       </section>
     </main>
   </body>

@@ -58,6 +58,7 @@ if (signIn && status) {
           });
         });
       } else {
+        button.textContent = "Sign in with Keycloak";
         message.textContent = "Sign in to continue.";
         button.addEventListener("click", () => {
           button.disabled = true;
