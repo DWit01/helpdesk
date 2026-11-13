@@ -64,12 +64,12 @@ On 12–13 November 2026, Daniel manually deployed a synthetic-data demo to
 an Azure for Students Ubuntu 24.04 VM. The VM has a public IP with SSH limited
 to his current public IP. The application ports are bound to VM loopback and
 accessed from his PC through an SSH tunnel. This is a private development demo,
-not a production setup. No automatic deployment was used.
+not a production setup. The initial setup was performed manually.
 
 - Rootless Podman 4.9.3 built the API image. The frontend image built after
   specifying the fully qualified Docker Hub address for its Nginx base image.
-  The VM build used a temporary Dockerfile; the repository Dockerfile has since
-  been updated locally and still needs its own verification and commit.
+  The VM build used a temporary Dockerfile; the updated repository Dockerfile
+  was subsequently built successfully on Daniel's PC.
 - Ubuntu's podman-compose 1.0.6 could parse the file but did not accept the
   `--profile` option. Its dependency-condition behaviour was not demonstrated.
   Daniel used a separately installed Docker Compose standalone 5.7.0 binary
@@ -88,14 +88,25 @@ not a production setup. No automatic deployment was used.
   and that the requester saw a public comment but not an internal comment.
   After restarting the API, readiness returned `ready`; Daniel confirmed the
   closed ticket and public comment remained visible.
+- On 13 November 2026, a manually dispatched GitHub Actions run passed CI,
+  published both private images, and completed the Azure deployment job for
+  commit `b1ec9fdef967199d92eb8f1070d1f1d8db5f44d5`. Daniel compared the
+  running container image IDs against the commit-tagged images on the VM; both
+  matched. He then confirmed the closed ticket and public comment remained.
+- Before that deployment, Daniel backed up the Azure SQLite database to a new
+  Podman volume and restored it to another volume. The restored copy reported
+  integrity `ok`, one ticket and revision `0f96f8423f48`. Both volumes remain on
+  the VM, so this is not an off-machine backup. Keycloak was not backed up by
+  this exercise.
 
 The containers required manual starting after the VM was restarted; they were
 also found stopped after an earlier session ended. The cause is unconfirmed. Automatic startup,
 behaviour after a VM reboot and deployment without an interactive session are
 not yet verified. The original frontend build on the VM failed because its
 unqualified Nginx image name did not resolve. The app's authenticated MCP path,
-VM backup/restore, identity recovery and a full fresh-machine run remain untested.
-The Azure demo has not been deployed or updated automatically by GitHub.
+off-machine recovery, identity recovery and a full fresh-machine run remain
+untested. The GitHub deployment was manually dispatched; deployment triggered
+automatically by a push to `master` has not yet been verified.
 
 ## Resuming the Azure demo
 
@@ -185,8 +196,9 @@ backups: https://www.keycloak.org/server/importExport. Exports may contain
 private material and must not be committed or shared.
 
 Do not run `down --volumes`, remove test volumes or overwrite an existing
-database as a cleanup shortcut. Image publication, automated deployment,
-authenticated MCP and full recovery remain unverified.
+database as a cleanup shortcut. A manual GitHub workflow deployment has been
+verified; push-triggered deployment, authenticated MCP and full recovery remain
+unverified.
 
 ## Draft GitHub continuous deployment
 
@@ -196,10 +208,10 @@ and only after the backend, frontend and image-build jobs pass. Publication
 requires the repository variable `HELPDESK_PUBLISH_ENABLED` to be exactly
 `true`. Deployment additionally requires `HELPDESK_CD_ENABLED` to be exactly
 `true` and the publication job to succeed. This allows publication to be tested
-without deploying. Pull-request jobs remain on GitHub-hosted runners. Do not
-enable deployment until the configuration, runner trust and a disposable
-end-to-end test have been reviewed. This draft has not yet published images or
-deployed a VM automatically.
+without deploying. Pull-request jobs remain on GitHub-hosted runners. Daniel
+enabled both variables for the private demo and verified one manually
+dispatched deployment. The push-to-master trigger and deployment on a fresh
+disposable stack remain unverified.
 
 The publish job builds API and frontend images and pushes them to GitHub
 Container Registry using commit-SHA tags. Tags identify a commit but can be
@@ -233,8 +245,9 @@ pulls both images, checks the database against Alembic heads using a read-only
 volume mount, and refuses to run a migration automatically. It then replaces only
 the API and frontend with Compose `--no-deps`, leaving Keycloak and both volumes
 in place, and checks the API readiness and frontend HTTP response. The script
-records the prior image IDs in the job log. These checks and update semantics
-have not yet been tested on this VM or against a disposable copy.
+records the prior image IDs in the job log. The manual workflow run succeeded
+on the existing demo VM; deployment against a fresh disposable stack remains
+untested.
 
 The workflow has no automatic rollback. An interrupted or failed update can
 leave changed tags or partially replaced containers and requires inspection and
@@ -242,5 +255,5 @@ manual recovery. Database and Keycloak backup/restore, including off-machine
 storage, must be planned and tested independently. A readiness response only
 checks the endpoint; it does not prove that sign-in or ticket workflows work.
 The `master` check reduces stale deployments but is not an atomic guarantee if
-the branch changes after the check. Do not enable CD until these limitations
-and the repository's runner and package permissions are understood.
+the branch changes after the check. Understand these limitations and the
+repository's runner and package permissions before relying on deployment.
