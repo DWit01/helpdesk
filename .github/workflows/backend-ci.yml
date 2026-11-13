@@ -5,6 +5,7 @@ on:
     branches: [master]
   push:
     branches: [master]
+  workflow_dispatch:
 
 jobs:
   backend:
@@ -84,8 +85,8 @@ jobs:
         run: docker build --tag helpdesk-frontend:ci frontend
 
   publish-images:
-    # A repository variable must explicitly enable this after the VM is prepared.
-    if: github.event_name == 'push' && github.ref == 'refs/heads/master' && vars.HELPDESK_CD_ENABLED == 'true'
+    # Publication is independent of deployment so it can be tested first.
+    if: (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/master' && vars.HELPDESK_PUBLISH_ENABLED == 'true'
     needs: [container-build]
     runs-on: ubuntu-latest
     permissions:
@@ -119,7 +120,7 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw 'Frontend image push failed.' }
 
   deploy-azure-demo:
-    if: github.event_name == 'push' && github.ref == 'refs/heads/master' && vars.HELPDESK_CD_ENABLED == 'true'
+    if: (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/master' && vars.HELPDESK_CD_ENABLED == 'true'
     needs: [publish-images]
     runs-on: [self-hosted, linux, x64, helpdesk-azure-demo]
     permissions:

@@ -190,12 +190,16 @@ authenticated MCP and full recovery remain unverified.
 
 ## Draft GitHub continuous deployment
 
-The workflow contains a disabled-by-default publishing and deployment path.
-It runs only for a push to `master`, after the backend, frontend and image-build
-jobs pass, and only when the repository variable `HELPDESK_CD_ENABLED` is exactly
-`true`. Pull-request jobs remain on GitHub-hosted runners. Do not enable the
-variable until the configuration, runner trust and a disposable end-to-end test
-have been reviewed. This draft has not yet published images or deployed a VM.
+The workflow contains disabled-by-default publishing and deployment paths.
+They run only for a push to `master` or a manually dispatched run on `master`,
+and only after the backend, frontend and image-build jobs pass. Publication
+requires the repository variable `HELPDESK_PUBLISH_ENABLED` to be exactly
+`true`. Deployment additionally requires `HELPDESK_CD_ENABLED` to be exactly
+`true` and the publication job to succeed. This allows publication to be tested
+without deploying. Pull-request jobs remain on GitHub-hosted runners. Do not
+enable deployment until the configuration, runner trust and a disposable
+end-to-end test have been reviewed. This draft has not yet published images or
+deployed a VM automatically.
 
 The publish job builds API and frontend images and pushes them to GitHub
 Container Registry using commit-SHA tags. Tags identify a commit but can be
