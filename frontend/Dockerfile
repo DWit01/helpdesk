@@ -9,7 +9,7 @@ COPY tsconfig.json ./
 COPY src/ ./src/
 RUN npm run build
 
-FROM nginxinc/nginx-unprivileged:stable-alpine AS runtime
+FROM docker.io/nginxinc/nginx-unprivileged:stable-alpine AS runtime
 
 COPY index.html styles.css config.js /usr/share/nginx/html/
 COPY svg/ /usr/share/nginx/html/svg/
