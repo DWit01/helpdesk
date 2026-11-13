@@ -238,3 +238,70 @@ body:not(.signed-in) .brand-bar .brand-home {
 @media (max-height: 500px) {
   body.signed-in .site-header { max-height: 45vh; overflow-y: auto; }
 }
+
+/* The welcome screen is separate visually from the signed-in workspace. */
+body.signed-in .login-overview,
+body.signed-in .sign-in-intro,
+body.signed-in .sign-in-notice { display: none; }
+
+body:not(.signed-in) {
+  background: radial-gradient(circle at 0 0, #e1eaff 0 11rem, transparent 11.1rem),
+    radial-gradient(circle at 100% 0, #dce8ff 0 14rem, transparent 14.1rem),
+    radial-gradient(circle at 100% 110%, #e1eaff 0 17rem, transparent 17.1rem), #f6f8ff;
+  color: #0c1d4b;
+}
+body:not(.signed-in) .page { padding: 2rem; }
+body:not(.signed-in) .card {
+  display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  align-items: center; gap: clamp(3rem, 7vw, 7rem); width: min(100%, 70rem);
+  padding: 0; border: 0; background: transparent; box-shadow: none;
+}
+body:not(.signed-in) .site-header { overflow: visible; }
+body:not(.signed-in) .brand-bar { flex-direction: row; align-items: center; gap: 0.75rem; }
+body:not(.signed-in) .brand-bar .brand-icon { width: 3.5rem; height: 3.5rem; filter: invert(30%) sepia(98%) saturate(2312%) hue-rotate(207deg) brightness(97%); }
+body:not(.signed-in) .brand-bar .brand-home { color: #0c1d4b; font-size: 1.8rem; letter-spacing: 0; text-transform: capitalize; }
+body:not(.signed-in) .welcome-panel { padding: 1.5rem 0 0; }
+body:not(.signed-in) .welcome-panel h1 { margin: 0 0 0.4rem; font-size: clamp(2rem, 3.4vw, 2.8rem); }
+body:not(.signed-in) .intro { margin: 0; color: #304b84; font-size: 1.1rem; }
+body:not(.signed-in) .login-illustration { display: grid; place-items: end center; height: 12rem; margin-top: 1.5rem; background: radial-gradient(ellipse at center bottom, #e2eaff 0 64%, transparent 65%); }
+body:not(.signed-in) .login-laptop { position: relative; display: grid; place-items: center; width: min(70%, 17rem); height: 10rem; border: 0.45rem solid #2463cf; border-bottom-width: 0.65rem; border-radius: 0.8rem 0.8rem 0.15rem 0.15rem; background: #f5f8ff; }
+body:not(.signed-in) .login-laptop::after { position: absolute; bottom: -1.1rem; width: 116%; height: 0.65rem; border-radius: 0 0 1rem 1rem; background: #2463cf; content: ""; }
+body:not(.signed-in) .login-laptop > img:first-child { width: 5rem; }
+body:not(.signed-in) .login-laptop .login-check { position: absolute; right: 17%; bottom: 12%; width: 2.75rem; }
+body:not(.signed-in) .login-features { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); margin: 2rem 0 0; padding: 1rem 0 0; border-top: 1px solid #d5e1f7; list-style: none; text-align: center; }
+body:not(.signed-in) .login-features li { display: flex; flex-direction: column; align-items: center; gap: 0.25rem; padding: 0 0.5rem; line-height: 1.35; }
+body:not(.signed-in) .login-features li + li { border-left: 1px solid #cbdaf5; }
+body:not(.signed-in) .login-features img { width: 1.5rem; height: 1.5rem; margin-bottom: 0.3rem; }
+body:not(.signed-in) .login-features span { color: #496399; font-size: 0.85rem; }
+body:not(.signed-in) .sign-in-panel { padding: clamp(1.5rem, 4vw, 3.25rem); border: 1px solid #d6e3fb; border-radius: 1rem; background: #fff; box-shadow: 0 0.5rem 2rem #244a8210; }
+body:not(.signed-in) .sign-in-intro h2 { margin: 0 0 0.4rem; font-size: 2rem; }
+body:not(.signed-in) .sign-in-intro p { margin: 0; color: #496399; font-size: 1.05rem; }
+body:not(.signed-in) #sign-in { display: flex; align-items: center; justify-content: center; gap: 0.75rem; width: 100%; min-height: 3.5rem; margin: 1.75rem 0 0; background: #1464e8; font-size: 1rem; }
+body:not(.signed-in) #sign-in:hover:not(:disabled) { background: #1054c6; }
+body:not(.signed-in) #sign-in::before { width: 2rem; height: 2rem; background: url('./svg/keycloak-svgrepo-com.svg') center / contain no-repeat; content: ""; }
+body:not(.signed-in) .sign-in-notice { display: flex; align-items: center; gap: 0.75rem; margin: 1.5rem 0 0; padding: 0.9rem; border-radius: 0.65rem; background: #eaf1ff; color: #294879; font-size: 0.9rem; }
+body:not(.signed-in) .sign-in-notice img { flex: none; width: 1.25rem; height: 1.25rem; }
+body:not(.signed-in) #sign-in-status { margin-top: 0.75rem; }
+@media (max-width: 800px) {
+  body:not(.signed-in) .card { grid-template-columns: minmax(0, 1fr); gap: 2rem; max-width: 34rem; }
+  body:not(.signed-in) .page { padding: 2rem 1.25rem; }
+}
+@media (max-width: 600px) {
+  body:not(.signed-in) .page { display: block; padding: 1.5rem 1rem; }
+  body:not(.signed-in) .card { width: 100%; gap: 1.5rem; margin: 0 auto; }
+  body:not(.signed-in) .site-header, body:not(.signed-in) .sign-in-panel { min-width: 0; }
+  body:not(.signed-in) .brand-bar .brand-icon { width: 2.5rem; height: 2.5rem; }
+  body:not(.signed-in) .brand-bar .brand-home { width: auto; font-size: 1.4rem; }
+  body:not(.signed-in) .welcome-panel { padding: 1rem 0 0; }
+  body:not(.signed-in) .welcome-panel h1 { font-size: clamp(1.6rem, 7vw, 2rem); overflow-wrap: anywhere; }
+  body:not(.signed-in) .intro { font-size: 1rem; }
+  body:not(.signed-in) .login-illustration { height: 9rem; margin-top: 1rem; }
+  body:not(.signed-in) .login-laptop { width: min(70%, 14rem); height: 7.5rem; }
+  body:not(.signed-in) .login-features { margin-top: 1.5rem; }
+  body:not(.signed-in) .login-features li { padding: 0 0.3rem; font-size: 0.8rem; }
+  body:not(.signed-in) .login-features span { font-size: 0.75rem; }
+  body:not(.signed-in) .sign-in-panel { padding: 1.5rem; }
+  body:not(.signed-in) .sign-in-intro h2 { font-size: 1.6rem; }
+  body:not(.signed-in) .sign-in-intro p { font-size: 1rem; }
+  body:not(.signed-in) #sign-in { margin-top: 1.25rem; }
+}
