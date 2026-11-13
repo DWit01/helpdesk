@@ -2,7 +2,7 @@
 # not a general-purpose deployment tool or an automatic migration mechanism.
 $ErrorActionPreference = 'Stop'
 $project = 'helpdeskazure84e9'
-$requiredContainers = @("$project-keycloak-1", "$project-api-1", "$project-frontend-1")
+$requiredContainers = @("$project-keycloak-1", "$project-api-1", "$project-frontend-1", "$project-mcp-1")
 $dataVolume = "${project}_helpdesk-data"
 $authFile = Join-Path ([IO.Path]::GetTempPath()) ('helpdesk-registry-' + [guid]::NewGuid().ToString('N') + '.json')
 
@@ -84,8 +84,11 @@ try {
     Assert-NativeSuccess 'Could not inspect the existing API image.'
     $oldFrontend = & podman image inspect --format '{{.Id}}' $frontendLocal
     Assert-NativeSuccess 'Could not inspect the existing frontend image.'
+    $oldMcp = & podman inspect --format '{{.Image}}' "$project-mcp-1"
+    Assert-NativeSuccess 'Could not inspect the existing MCP container image.'
     Write-Host "Previous API image: $oldApi"
     Write-Host "Previous frontend image: $oldFrontend"
+    Write-Host "Previous MCP image: $oldMcp"
 
     & podman tag $apiImage $apiLocal
     Assert-NativeSuccess 'Could not tag API image.'
@@ -96,11 +99,11 @@ try {
     # Compose interpolation only and are not the real bootstrap credentials.
     $env:KC_BOOTSTRAP_ADMIN_USERNAME = 'validation-only'
     $env:KC_BOOTSTRAP_ADMIN_PASSWORD = 'validation-only'
-    & $env:HELPDESK_COMPOSE_BIN --env-file $envFile -p $project -f $composeFile `
-        up --detach --no-build --pull never --no-deps --force-recreate api frontend
+    & $env:HELPDESK_COMPOSE_BIN --env-file $envFile -p $project -f $composeFile --profile mcp `
+        up --detach --no-build --pull never --no-deps --force-recreate api frontend mcp
     Assert-NativeSuccess 'Container update failed; inspect the demo before retrying.'
 
-    foreach ($url in @('http://127.0.0.1:18183/ready', 'http://127.0.0.1:18181/')) {
+    foreach ($url in @('http://127.0.0.1:18183/ready', 'http://127.0.0.1:18181/', 'http://127.0.0.1:18184/.well-known/oauth-protected-resource/mcp')) {
         $healthy = $false
         for ($attempt = 0; $attempt -lt 20; $attempt++) {
             try {
