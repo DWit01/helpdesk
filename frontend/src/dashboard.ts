@@ -109,7 +109,11 @@ export async function loadDashboard(): Promise<void> {
       total += amount;
       const card = document.createElement("button");
       card.type = "button";
-      card.textContent = `${value.replaceAll("_", " ")}: ${amount}`;
+      const label = document.createElement("span");
+      label.textContent = value.replaceAll("_", " ");
+      const number = document.createElement("strong");
+      number.textContent = String(amount);
+      card.append(label, number);
       card.addEventListener("click", () => {
         if (!statusFilter) return;
         statusFilter.value = value;

@@ -305,3 +305,68 @@ body:not(.signed-in) #sign-in-status { margin-top: 0.75rem; }
   body:not(.signed-in) .sign-in-intro p { font-size: 1rem; }
   body:not(.signed-in) #sign-in { margin-top: 1.25rem; }
 }
+
+/* Signed-in workspace: keep the login design independent of these rules. */
+.workspace-nav { display: none; }
+body.signed-in .page { padding: 1.5rem 2rem 2rem 15.5rem; }
+body.signed-in .workspace-nav {
+  position: fixed; inset: 0 auto 0 0; z-index: 20;
+  display: flex; flex-direction: column; gap: 0.3rem; width: 13.5rem;
+  padding: 1.5rem 0.75rem; background: #162a50; color: #fff;
+}
+.workspace-brand { display: flex; align-items: center; gap: 0.7rem; margin: 0 0 2rem; padding: 0 0.55rem; background: transparent; color: #fff; text-align: left; font-size: 1.2rem; font-weight: 700; }
+.workspace-brand:hover:not(:disabled) { background: transparent; text-decoration: underline; }
+.workspace-menu-toggle { display: none; }
+.workspace-menu { display: flex; flex: 1; flex-direction: column; gap: 0.3rem; }
+.workspace-brand img { width: 2rem; height: 2rem; filter: brightness(0) invert(1); }
+.workspace-nav a { display: block; padding: 0.8rem 0.9rem; border-radius: 0.5rem; color: #e6efff; font-weight: 600; text-decoration: none; }
+.workspace-nav a[hidden] { display: none; }
+.workspace-nav a:hover { color: #fff; background: #1464e8; }
+.workspace-nav a:focus-visible { outline: 3px solid #a9caff; outline-offset: 2px; }
+body.signed-in .sign-in-panel { display: none; }
+#workspace-sign-out { margin: auto 0 0; padding: 0.8rem 0.9rem; background: transparent; color: #e6efff; text-align: left; }
+#workspace-sign-out:hover:not(:disabled) { background: #29436f; color: #fff; }
+#workspace-sign-out-status { margin: 0; padding: 0 0.9rem; color: #fff; font-size: 0.85rem; }
+body.signed-in .site-header { position: static; border: 0; background: transparent; box-shadow: none; }
+body.signed-in .brand-bar { display: none; }
+body.signed-in .welcome-panel { padding: 0.3rem 0 0.75rem; }
+body.signed-in .welcome-panel h1 { margin-bottom: 0.3rem; font-size: clamp(1.55rem, 3vw, 2rem); }
+body.signed-in .welcome-panel .status { color: #536c95; }
+body.signed-in .card > section { scroll-margin-top: 1rem; }
+body.signed-in #tickets-title, body.signed-in #detail-title { scroll-margin-top: 1rem; }
+body.signed-in #dashboard { padding: clamp(1.25rem, 3vw, 2rem); }
+body.signed-in #dashboard > h2 { padding: 0; border: 0; font-size: 1.4rem; }
+.dashboard-intro, .dashboard-panel-description { color: #536c95; }
+body.signed-in .dashboard-grid { gap: 0.85rem; margin-top: 1.2rem; }
+body.signed-in .dashboard-grid button {
+  display: flex; flex-direction: column; align-items: flex-start; gap: 0.45rem;
+  min-height: 6rem; padding: 1rem; border: 1px solid #d8e5fa;
+  background: #f5f8ff; color: #35527e; text-transform: capitalize;
+}
+body.signed-in .dashboard-grid button strong { color: #102a58; font-size: 1.65rem; line-height: 1; }
+body.signed-in .dashboard-grid button:hover:not(:disabled) { border-color: #7daaf3; background: #e9f1ff; }
+.dashboard-ticket-panels { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 19rem), 1fr)); gap: 1rem; margin-top: 1.5rem; }
+.dashboard-ticket-panel { min-width: 0; padding: 1.1rem; border: 1px solid #e0eafa; border-radius: 0.65rem; background: #fff; }
+.dashboard-ticket-panel[hidden] { display: none; }
+.dashboard-ticket-panel h3 { margin: 0; color: #142b51; }
+.dashboard-ticket-panel p { margin: 0.4rem 0 0; font-size: 0.875rem; }
+.dashboard-ticket-panel .ticket-list { margin: 0.8rem 0 0; padding: 0; list-style: none; }
+.dashboard-ticket-panel .ticket-list li, .dashboard-ticket-panel .ticket-list li + li { margin: 0; border-top: 1px solid #e7eef9; }
+.dashboard-ticket-panel .ticket-list .ticket-title { width: 100%; min-height: 0; padding: 0.8rem 0; color: #245bb0; text-decoration: none; }
+.dashboard-ticket-panel .ticket-list .ticket-title:hover { color: #103d89; text-decoration: underline; }
+body.signed-in #refresh-dashboard { background: #eef4ff; color: #245bb0; }
+body.signed-in #refresh-dashboard:hover:not(:disabled) { background: #dceaff; }
+@media (max-width: 850px) {
+  body.signed-in .page { padding: 0.75rem; }
+  body.signed-in .workspace-nav { position: static; flex-direction: row; align-items: center; flex-wrap: wrap; width: auto; margin-bottom: 1.2rem; padding: 0.7rem; border-radius: 0.65rem; }
+  .workspace-brand { margin: 0 0.5rem 0 0; }
+  .workspace-menu-toggle { display: block; min-width: 2.75rem; margin: 0 0 0 auto; padding: 0.4rem; background: transparent; color: #fff; font-size: 1.5rem; line-height: 1; }
+  .workspace-menu-toggle:hover:not(:disabled) { background: #29436f; }
+  .workspace-menu { display: none; flex: 0 0 100%; padding-top: 0.5rem; }
+  .workspace-menu-toggle[aria-expanded="true"] + .workspace-menu { display: flex; }
+  .workspace-nav a { padding: 0.6rem 0.7rem; }
+  #workspace-sign-out { margin: 0.3rem 0 0; }
+}
+@media (max-width: 500px) {
+  body.signed-in .dashboard-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}

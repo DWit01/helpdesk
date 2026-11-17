@@ -1,4 +1,4 @@
-import { signIn, status, profile, refreshDashboard, keycloak, rememberTicket, rememberedTicket } from "./screen-context.js";
+import { signIn, status, profile, refreshDashboard, keycloak, rememberTicket, rememberedTicket, state } from "./screen-context.js";
 import { loadDashboard } from "./dashboard.js";
 import { openTicket, setupTicketDetail } from "./ticket-detail.js";
 import { setupTicketList } from "./ticket-list.js";
@@ -6,6 +6,51 @@ import { loadProfile } from "./profile.js";
 import { setupCategoryAdmin } from "./category-admin.js";
 
 const homeButton = document.querySelector<HTMLButtonElement>(".brand-home");
+const workspaceHome = document.querySelector<HTMLButtonElement>(".workspace-brand");
+const menuToggle = document.querySelector<HTMLButtonElement>(".workspace-menu-toggle");
+const workspaceSignOut = document.querySelector<HTMLButtonElement>("#workspace-sign-out");
+const workspaceSignOutStatus = document.querySelector<HTMLElement>("#workspace-sign-out-status");
+const workspaceLinks = document.querySelectorAll<HTMLAnchorElement>(".workspace-nav a");
+const categoryNav = document.querySelector<HTMLAnchorElement>("#category-nav");
+
+function closeMenu(): void {
+  menuToggle?.setAttribute("aria-expanded", "false");
+  menuToggle?.setAttribute("aria-label", "Open navigation menu");
+}
+
+menuToggle?.addEventListener("click", () => {
+  const open = menuToggle.getAttribute("aria-expanded") !== "true";
+  menuToggle.setAttribute("aria-expanded", String(open));
+  menuToggle.setAttribute("aria-label", open ? "Close navigation menu" : "Open navigation menu");
+});
+menuToggle?.addEventListener("keydown", (event) => {
+  if (event.key === "Escape") closeMenu();
+});
+document.querySelector<HTMLElement>("#workspace-menu")?.addEventListener("keydown", (event) => {
+  if (event.key === "Escape" && menuToggle?.getAttribute("aria-expanded") === "true") {
+    closeMenu();
+    menuToggle.focus();
+  }
+});
+workspaceHome?.addEventListener("click", () => { closeMenu(); homeButton?.click(); });
+
+window.addEventListener("helpdesk:profile-ready", () => {
+  if (categoryNav) categoryNav.hidden = state.userRole !== "admin";
+});
+
+workspaceLinks.forEach((link) => {
+  link.addEventListener("click", (event) => {
+    event.preventDefault();
+    const target = document.querySelector<HTMLElement>(link.hash);
+    const detail = document.querySelector<HTMLElement>("#ticket-detail");
+    if (detail && !detail.hidden) {
+      document.querySelector<HTMLButtonElement>("#back-to-tickets")?.click();
+    }
+    if (!target || target.hidden) return;
+    closeMenu();
+    target.scrollIntoView({ behavior: "smooth", block: "start" });
+  });
+});
 
 homeButton?.addEventListener("click", (): void => {
   const ticketDetail = document.querySelector<HTMLElement>("#ticket-detail");
@@ -51,12 +96,17 @@ if (signIn && status) {
         if (ticketId !== null) void openTicket(ticketId);
         button.addEventListener("click", () => {
           button.disabled = true;
+          if (workspaceSignOut) workspaceSignOut.disabled = true;
+          if (workspaceSignOutStatus) workspaceSignOutStatus.textContent = "";
           rememberTicket(null);
           void keycloak.logout({ redirectUri }).catch(() => {
             message.textContent = "We couldn't sign you out. Please try again.";
+            if (workspaceSignOutStatus) workspaceSignOutStatus.textContent = message.textContent;
+            if (workspaceSignOut) workspaceSignOut.disabled = false;
             button.disabled = false;
           });
         });
+        workspaceSignOut?.addEventListener("click", () => button.click());
       } else {
         button.textContent = "Sign in with Keycloak";
         message.textContent = "Sign in to continue.";

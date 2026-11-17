@@ -16,6 +16,18 @@
     <p class="session-loading" role="status">Checking your session...</p>
     <main class="page">
       <section class="card" aria-labelledby="page-title">
+        <nav class="workspace-nav" aria-label="Workspace navigation">
+          <button class="workspace-brand" type="button" aria-label="Helpdesk home"><img src="./svg/headset.svg" alt=""><span>Helpdesk</span></button>
+          <button class="workspace-menu-toggle" type="button" aria-label="Open navigation menu" aria-expanded="false" aria-controls="workspace-menu"><span aria-hidden="true">☰</span></button>
+          <div id="workspace-menu" class="workspace-menu">
+          <a href="#dashboard">Dashboard</a>
+          <a href="#create-ticket">New Ticket</a>
+          <a href="#tickets">Tickets</a>
+          <a href="#category-admin" id="category-nav" hidden>Categories</a>
+          <button id="workspace-sign-out" type="button">Sign Out</button>
+          <p id="workspace-sign-out-status" role="status"></p>
+          </div>
+        </nav>
         <header class="site-header">
           <div class="brand-bar">
             <img class="brand-icon" src="./svg/headset.svg" alt="" aria-hidden="true">
@@ -39,18 +51,23 @@
         </header>
         <section id="dashboard" aria-labelledby="dashboard-title" hidden>
           <h2 id="dashboard-title">Dashboard</h2>
-          <p>Counts for your visible tickets. Select a status to filter the ticket list.</p>
+          <p class="dashboard-intro">Your ticket overview. Select a status to view matching tickets.</p>
           <p id="dashboard-status" class="status" role="status"></p>
           <div id="dashboard-counts"></div>
-          <h3>Recent tickets</h3>
-          <p id="recent-tickets-status" class="status" role="status"></p>
-          <ul id="recent-tickets" class="ticket-list"></ul>
-          <section id="assigned-tickets-section" aria-labelledby="assigned-tickets-title" hidden>
-            <h3 id="assigned-tickets-title">Assigned to me</h3>
-            <p>Open, in-progress and resolved tickets assigned to you.</p>
-            <p id="assigned-tickets-status" class="status" role="status"></p>
-            <ul id="assigned-tickets" class="ticket-list"></ul>
-          </section>
+          <div class="dashboard-ticket-panels">
+            <section class="dashboard-ticket-panel" aria-labelledby="recent-tickets-title">
+              <h3 id="recent-tickets-title">Recent tickets</h3>
+              <p class="dashboard-panel-description">The latest tickets you can see.</p>
+              <p id="recent-tickets-status" class="status" role="status"></p>
+              <ul id="recent-tickets" class="ticket-list"></ul>
+            </section>
+            <section id="assigned-tickets-section" class="dashboard-ticket-panel" aria-labelledby="assigned-tickets-title" hidden>
+              <h3 id="assigned-tickets-title">Assigned to me</h3>
+              <p>Open, in-progress and resolved tickets assigned to you.</p>
+              <p id="assigned-tickets-status" class="status" role="status"></p>
+              <ul id="assigned-tickets" class="ticket-list"></ul>
+            </section>
+          </div>
           <button id="refresh-dashboard" type="button">Refresh dashboard</button>
         </section>
         <section id="ticket-detail" aria-labelledby="detail-title" hidden>
