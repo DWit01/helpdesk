@@ -1,5 +1,5 @@
 import { ApiError, authRefreshMessage, withRequestId, writeErrorMessage } from "./api-client.js";
-import { api, createSection, ticketForm, createCategory, createButton, createStatus, positiveId, state } from "./screen-context.js";
+import { api, createSection, ticketForm, createCategory, createButton, createStatus, positiveId, state, expandSection, ticketsSection } from "./screen-context.js";
 import { openTicket } from "./ticket-detail.js";
 import { loadDashboard } from "./dashboard.js";
 
@@ -13,6 +13,7 @@ export function setupCreateTicket(load: () => void): void {
       if (!cancelCreate || cancelCreate.disabled) return;
       form.reset();
       feedback.textContent = "";
+      expandSection(ticketsSection);
       document.querySelector<HTMLElement>("#tickets-title")?.scrollIntoView();
     });
     form.addEventListener("submit", (event) => {

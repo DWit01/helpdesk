@@ -145,7 +145,8 @@
           <button id="back-to-tickets" type="button">Back to tickets</button>
         </section>
         <section id="create-ticket" aria-labelledby="create-title" hidden>
-          <h2 id="create-title">Create ticket</h2>
+          <details class="workspace-section">
+          <summary><h2 id="create-title">Create ticket</h2></summary>
           <form id="ticket-form">
             <label for="ticket-title">Title</label>
             <input id="ticket-title" name="title" required minlength="5" maxlength="120">
@@ -160,39 +161,15 @@
               <option value="LOW">Low</option><option value="MEDIUM" selected>Medium</option>
               <option value="HIGH">High</option><option value="CRITICAL">Critical</option>
             </select>
-            <button id="create-submit" type="submit" disabled>Create ticket</button>
-              <button id="create-cancel" type="button">Cancel</button>
+            <div class="form-actions"><button id="create-submit" type="submit" disabled>Create ticket</button>
+              <button id="create-cancel" type="button">Cancel</button></div>
             <p id="create-status" class="status" role="status"></p>
           </form>
-        </section>
-        <section id="category-admin" aria-labelledby="category-admin-title" hidden>
-          <h2 id="category-admin-title">Category administration</h2>
-          <p id="category-admin-status" class="status" role="status"></p>
-          <ul id="category-admin-list" class="category-admin-list"></ul>
-          <button id="category-admin-retry" type="button" hidden>Retry categories</button>
-          <form id="category-edit-form" hidden>
-            <h3>Edit category</h3>
-            <label for="category-edit-name">Name</label>
-            <input id="category-edit-name" name="name" required minlength="2" maxlength="60">
-            <label for="category-edit-description">Description (optional)</label>
-            <textarea id="category-edit-description" name="description" maxlength="255" rows="3"></textarea>
-            <label><input id="category-edit-active" type="checkbox" name="is_active"> Active</label>
-            <div><button id="category-edit-submit" type="submit">Save category</button>
-              <button id="category-edit-cancel" type="button">Cancel</button></div>
-            <p id="category-edit-status" class="status" role="status"></p>
-          </form>
-          <form id="category-create-form">
-            <h3>Create category</h3>
-            <label for="category-name">Name</label>
-            <input id="category-name" name="name" required minlength="2" maxlength="60">
-            <label for="category-description">Description (optional)</label>
-            <textarea id="category-description" name="description" maxlength="255" rows="3"></textarea>
-            <button id="category-create-submit" type="submit">Create category</button>
-            <p id="category-create-status" class="status" role="status"></p>
-          </form>
+          </details>
         </section>
         <section id="tickets" aria-labelledby="tickets-title" hidden>
-          <h2 id="tickets-title">Tickets</h2>
+          <details class="workspace-section">
+          <summary><h2 id="tickets-title">Tickets</h2></summary>
           <form id="ticket-search-form" role="search">
             <label for="ticket-search">Search title or description</label>
             <input id="ticket-search" type="search" maxlength="200">
@@ -274,6 +251,35 @@
             <button id="next-page" type="button" disabled>Next</button>
           </nav>
           <button id="retry-tickets" type="button" hidden>Try again</button>
+          </details>
+        </section>
+        <section id="category-admin" aria-labelledby="category-admin-title" hidden>
+          <details class="workspace-section">
+          <summary><h2 id="category-admin-title">Category administration</h2></summary>
+          <p id="category-admin-status" class="status" role="status"></p>
+          <ul id="category-admin-list" class="category-admin-list"></ul>
+          <button id="category-admin-retry" type="button" hidden>Retry categories</button>
+          <form id="category-edit-form" hidden>
+            <h3>Edit category</h3>
+            <label for="category-edit-name">Name</label>
+            <input id="category-edit-name" name="name" required minlength="2" maxlength="60">
+            <label for="category-edit-description">Description (optional)</label>
+            <textarea id="category-edit-description" name="description" maxlength="255" rows="3"></textarea>
+            <label><input id="category-edit-active" type="checkbox" name="is_active"> Active</label>
+            <div><button id="category-edit-submit" type="submit">Save category</button>
+              <button id="category-edit-cancel" type="button">Cancel</button></div>
+            <p id="category-edit-status" class="status" role="status"></p>
+          </form>
+          <form id="category-create-form">
+            <h3>Create category</h3>
+            <label for="category-name">Name</label>
+            <input id="category-name" name="name" required minlength="2" maxlength="60">
+            <label for="category-description">Description (optional)</label>
+            <textarea id="category-description" name="description" maxlength="255" rows="3"></textarea>
+            <button id="category-create-submit" type="submit">Create category</button>
+            <p id="category-create-status" class="status" role="status"></p>
+          </form>
+          </details>
         </section>
         <div class="sign-in-panel">
           <div class="sign-in-intro"><h2>Sign In</h2><p>Use your Keycloak account to continue</p></div>

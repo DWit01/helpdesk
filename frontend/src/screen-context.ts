@@ -67,6 +67,11 @@ export const state = {
   selectedTicketId: null as number | null,
 };
 
+export function expandSection(section: HTMLElement | null): void {
+  const details = section?.querySelector<HTMLDetailsElement>(":scope > details.workspace-section");
+  if (details) details.open = true;
+}
+
 // Keep only navigation state in this browser tab, never authentication tokens.
 const selectedTicketKey = "helpdesk.selectedTicketId";
 
