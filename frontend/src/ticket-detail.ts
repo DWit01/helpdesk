@@ -4,7 +4,7 @@ import { clearAssignment, setupAssignment, showAssignment } from "./ticket-assig
 import { loadAssignedTickets } from "./dashboard.js";
 import { loadDashboard } from "./dashboard.js";
 import { clearStatusActions, showStatusActions } from "./ticket-status.js";
-import { rememberTicket, statusFilter } from "./screen-context.js";
+import { rememberTicket, statusFilter, expandSection } from "./screen-context.js";
 import { hideCategoryAdmin, showCategoryAdmin } from "./category-admin.js";
 import { clearTicketEdit, setupTicketEdit, showTicketEdit } from "./ticket-edit.js";
 import { addCommentEdit } from "./comment-edit.js";
@@ -221,6 +221,7 @@ backToTickets?.addEventListener("click", () => {
   rememberTicket(null);
   if (detailSection) detailSection.hidden = true;
   if (ticketsSection) ticketsSection.hidden = false;
+  expandSection(ticketsSection);
   if (createSection) createSection.hidden = false;
   if (dashboard) dashboard.hidden = false;
   showCategoryAdmin();

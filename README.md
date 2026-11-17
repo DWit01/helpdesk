@@ -1,7 +1,8 @@
 # Helpdesk
 
-A Python learning project implementing a helpdesk backend with FastAPI,
-synchronous SQLAlchemy 2.x, Alembic and Keycloak authentication.
+A helpdesk application for creating, tracking and resolving support tickets.
+It has a browser interface, a FastAPI backend and an MCP server. Keycloak
+handles sign-in; the application enforces its own permissions.
 
 ## Current implementation
 
@@ -13,9 +14,33 @@ synchronous SQLAlchemy 2.x, Alembic and Keycloak authentication.
 - Configurable CORS with an empty origin allowlist by default.
 - Shared error responses, JSON logging and request IDs.
 - Automated tests, coverage reporting and pre-commit checks.
+- A TypeScript frontend for the dashboard, tickets and category administration.
+- An authenticated MCP server that uses the same services as the API.
 
 SQLite is used locally. PostgreSQL compatibility remains unverified.
-The frontend remains future work. The authenticated MCP server is implemented and locally verified.
+
+## Project layout
+
+- `backend/`: FastAPI application, SQLAlchemy models, migrations and tests.
+- `frontend/`: HTML, CSS and TypeScript browser interface.
+- `deploy/`: notes and configuration for the private container demo.
+- `compose.azure-demo.yml`: the demo's Podman Compose services and volumes.
+
+The frontend and backend have separate dependencies. The backend uses `uv`;
+the frontend uses npm. The frontend build compiles TypeScript into `dist/`.
+Its `config.js` supplies the API and Keycloak URLs at runtime. Serve the
+frontend over HTTP rather than opening the HTML file directly. The browser
+origin must be allowed by the API and registered with the Keycloak UI client.
+
+To build the frontend from the repository root:
+
+```powershell
+npm --prefix frontend run build
+```
+
+The private Azure demo uses an SSH tunnel and separate persistent volumes for
+SQLite and Keycloak. Setup, access and recovery notes are in
+[deploy/README.md](deploy/README.md). The demo is not a production deployment.
 
 ## How authentication works in this project
 
@@ -104,9 +129,10 @@ The development server is for local learning, not production deployment.
 4. Create an OpenID Connect public client named helpdesk-ui.
    Enable Standard flow, require PKCE and select S256 where the method
    setting is available. Disable other grant flows.
-5. For the local diagnostic helper, configure exactly this valid redirect:
+5. For the local diagnostic helper, configure this valid redirect:
    http://127.0.0.1:8765/callback
-6. Leave website origins unconfigured until a website origin is chosen.
+6. Add the frontend's actual origin and redirect URI when configuring the
+   browser interface. Use the exact protocol, host and port for that setup.
 7. Add an Audience mapper to the UI client's dedicated scope:
    include helpdesk-api in access tokens, not ID tokens.
 8. Disable Full scope allowed and explicitly include the three application
@@ -119,8 +145,8 @@ helpdesk-ui is public because the local browser login helper does not
 keep a client secret. PKCE binds the code exchange to the initiating
 login attempt.
 
-The callback above belongs to the diagnostic helper. It is not a future
-website configuration.
+The callback above belongs to the diagnostic helper. The browser interface
+requires its own redirect URI and origin.
 
 ## Export and restore
 
@@ -137,9 +163,10 @@ Keep them outside this repository and do not treat them as shareable
 configuration. The setup recipe above is the non-secret configuration
 reference.
 
-Docker Desktop is blocked by company controls. Docker-compose
-automation remains deferred. Technical operation does not establish
-organisation-policy approval.
+Docker Desktop remains blocked by company controls. The separate private Azure
+demo uses rootless Podman and Compose; see the deployment notes for its scope
+and limitations. Technical operation does not establish organisation-policy
+approval.
 
 ## API behaviour
 
@@ -213,6 +240,18 @@ Verification:
 - Real Keycloak/Python SDK, Inspector and Copilot demonstrations passed
   within the tested local scope.
 
-These are local results, not CI evidence. No new coverage measurement was
-supplied for this checkpoint. Docker Compose remains deferred; PostgreSQL
+These are historical local results, not current CI evidence. PostgreSQL
 compatibility, branch coverage and general concurrency remain unverified.
+
+## Checks and deployment
+
+The frontend build checks TypeScript compilation. Backend checks use Ruff,
+Black, mypy and pytest; the repository's pre-commit hooks run Ruff, Black and
+mypy. CI runs the backend checks, frontend build and container builds. Image
+publication and Azure demo deployment are separate, conditionally enabled
+steps. A merged change alone does not confirm a successful deployment.
+
+SQLite data and Keycloak identity data have separate backup requirements.
+The deployment notes describe the demonstrated SQLite backup and restore,
+along with the limits of that exercise. Keep credentials, private keys, real
+environment files and Keycloak realm exports out of the repository.

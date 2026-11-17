@@ -1,5 +1,5 @@
 import { readErrorMessage } from "./api-client.js";
-import { api, dashboard, dashboardStatus, dashboardCounts, refreshDashboard, statusFilter, priorityFilter, categoryFilter, state, isRecord, positiveId } from "./screen-context.js";
+import { api, dashboard, dashboardStatus, dashboardCounts, refreshDashboard, statusFilter, priorityFilter, categoryFilter, state, isRecord, positiveId, expandSection, ticketsSection } from "./screen-context.js";
 import { openTicket } from "./ticket-detail.js";
 
 const recentStatus = document.querySelector<HTMLElement>("#recent-tickets-status");
@@ -124,6 +124,7 @@ export async function loadDashboard(): Promise<void> {
         window.dispatchEvent(new Event("helpdesk:clear-assignee"));
         window.dispatchEvent(new Event("helpdesk:clear-requester"));
         statusFilter.dispatchEvent(new Event("change"));
+        expandSection(ticketsSection);
         document.querySelector<HTMLElement>("#tickets-title")?.scrollIntoView();
       });
       grid.append(card);

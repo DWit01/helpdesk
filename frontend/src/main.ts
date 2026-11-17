@@ -1,4 +1,4 @@
-import { signIn, status, profile, refreshDashboard, keycloak, rememberTicket, rememberedTicket, state } from "./screen-context.js";
+import { signIn, status, profile, refreshDashboard, keycloak, rememberTicket, rememberedTicket, state, expandSection } from "./screen-context.js";
 import { loadDashboard } from "./dashboard.js";
 import { openTicket, setupTicketDetail } from "./ticket-detail.js";
 import { setupTicketList } from "./ticket-list.js";
@@ -12,6 +12,15 @@ const workspaceSignOut = document.querySelector<HTMLButtonElement>("#workspace-s
 const workspaceSignOutStatus = document.querySelector<HTMLElement>("#workspace-sign-out-status");
 const workspaceLinks = document.querySelectorAll<HTMLAnchorElement>(".workspace-nav a");
 const categoryNav = document.querySelector<HTMLAnchorElement>("#category-nav");
+
+function resetSections(): void {
+  document.querySelectorAll<HTMLDetailsElement>("details.workspace-section").forEach((section) => {
+    section.open = false;
+  });
+}
+
+resetSections();
+window.addEventListener("pageshow", resetSections);
 
 function closeMenu(): void {
   menuToggle?.setAttribute("aria-expanded", "false");
@@ -47,22 +56,16 @@ workspaceLinks.forEach((link) => {
       document.querySelector<HTMLButtonElement>("#back-to-tickets")?.click();
     }
     if (!target || target.hidden) return;
+    expandSection(target);
     closeMenu();
+    target.querySelector<HTMLElement>(":scope > details > summary")?.focus({ preventScroll: true });
     target.scrollIntoView({ behavior: "smooth", block: "start" });
   });
 });
 
 homeButton?.addEventListener("click", (): void => {
-  const ticketDetail = document.querySelector<HTMLElement>("#ticket-detail");
-  const backButton = document.querySelector<HTMLButtonElement>("#back-to-tickets");
-
-  // Reuse the existing navigation when a ticket is open.
-  if (ticketDetail && !ticketDetail.hidden) {
-    backButton?.click();
-  }
-
-  // The dashboard is already on index.html, so no page reload is needed.
-  window.scrollTo({ top: 0, behavior: "smooth" });
+  rememberTicket(null);
+  window.location.assign(new URL("./index.html", window.location.href).href);
 });
 
 if (signIn && status) {
