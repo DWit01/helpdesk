@@ -23,8 +23,8 @@ SQLite is used locally. PostgreSQL compatibility remains unverified.
 
 - `backend/`: FastAPI application, SQLAlchemy models, migrations and tests.
 - `frontend/`: HTML, CSS and TypeScript browser interface.
-- `deploy/`: notes and configuration for the private container demo.
-- `compose.azure-demo.yml`: the demo's Podman Compose services and volumes.
+- `deploy/`: public-safe deployment notes and example configuration.
+- `compose.azure-demo.yml`: example local container services and volumes.
 
 The frontend and backend have separate dependencies. The backend uses `uv`;
 the frontend uses npm. The frontend build compiles TypeScript into `dist/`.
@@ -38,9 +38,9 @@ To build the frontend from the repository root:
 npm --prefix frontend run build
 ```
 
-The private Azure demo uses an SSH tunnel and separate persistent volumes for
-SQLite and Keycloak. Setup, access and recovery notes are in
-[deploy/README.md](deploy/README.md). The demo is not a production deployment.
+Private deployment runbooks and infrastructure details are intentionally not
+included in this public repository. See [deploy/README.md](deploy/README.md)
+for the scope of the published deployment examples.
 
 ## How authentication works in this project
 
